@@ -131,7 +131,17 @@
   #cover {
     min-height: 100vh;
     color: #fff;
-    background: radial-gradient(circle at 50% 32%, var(--deep2), var(--deep));
+    background:
+      url('bloom.svg') no-repeat 50% bottom / 320px auto,
+      url('bloom-top.svg') no-repeat 50% top / 280px auto,
+      radial-gradient(circle at 50% 32%, var(--deep2), var(--deep));
+  }
+  /* cover: bunga sudut lebih besar & lebat */
+  #cover::before, #cover::after {
+    width: 320px; opacity: .92;
+    background:
+      url('bloom.svg') no-repeat left bottom / 320px auto,
+      url('bloom-top.svg') no-repeat left top / 250px auto;
   }
   /* bingkai ornamen di cover */
   #cover .frame {
