@@ -125,7 +125,8 @@
   body.loaded #cover .eyebrow   { animation: fadeUp .9s .05s both; }
   /* nama cover dianimasikan via ketik (JS), bukan fadeUp */
   body.loaded #cover .date-pill { animation: fadeUp 1s 1.9s both; }
-  body.loaded #cover .guest-box { animation: fadeUp 1s 2.2s both; }
+  body.loaded #cover .cover-invite { animation: fadeUp 1s 2.1s both; }
+  body.loaded #cover .guest-box { animation: fadeUp 1s 2.35s both; }
 
   /* ---------- COVER ---------- */
   #cover {
@@ -153,6 +154,24 @@
     color: var(--gold-soft); font-size: 18px;
   }
   #cover .frame::before { top: -11px; } #cover .frame::after { bottom: -11px; }
+  /* kartu kaca transparan (frosted) pembungkus konten cover */
+  .cover-card {
+    max-width: 330px; margin: 0 auto; padding: 34px 26px 30px;
+    background: rgba(255,255,255,.08);
+    -webkit-backdrop-filter: blur(7px); backdrop-filter: blur(7px);
+    border: 1px solid rgba(214,191,149,.35); border-radius: 20px;
+    box-shadow: 0 16px 44px rgba(0,0,0,.28);
+  }
+  .cover-invite {
+    font-family: var(--serif); font-style: italic; font-size: 14px;
+    color: rgba(255,255,255,.85); margin: 16px auto 0; max-width: 260px; line-height: 1.5;
+  }
+  /* band motif tenun Bugis di tepi atas & bawah cover */
+  .tenun {
+    position: absolute; left: 0; width: 100%; height: 20px; z-index: 2;
+    background: url('tenun.svg') repeat-x center / auto 20px; opacity: .9;
+  }
+  .tenun-top { top: 0; } .tenun-bottom { bottom: 0; }
   #cover .eyebrow { color: rgba(255,255,255,.85); }
   #cover .names {
     font-family: var(--script); font-size: 66px; line-height: 1.12;
@@ -452,14 +471,19 @@
   <!-- ================= COVER ================= -->
   <section id="cover">
     <div class="frame"></div>
-    <div class="eyebrow">The Wedding Of</div>
-    <div class="names" id="cover-names">Rangga & Cinta</div>
-    <div class="date-pill" id="cover-date">00 . 00 . 0000</div>
-    <div class="guest-box">
-      <div class="to">Kepada Yth. Bapak/Ibu/Saudara/i</div>
-      <div class="guest-name" id="guest-name">Tamu Undangan</div>
-      <button class="btn-open" id="btn-open">Buka Undangan</button>
+    <div class="tenun tenun-top"></div>
+    <div class="cover-card">
+      <div class="eyebrow">The Wedding Of</div>
+      <div class="names" id="cover-names">Rangga & Cinta</div>
+      <div class="date-pill" id="cover-date">00 . 00 . 0000</div>
+      <p class="cover-invite">Dengan hormat, kami mengundang Bapak/Ibu/Saudara/i untuk turut menyaksikan dan mendoakan hari bahagia kami.</p>
+      <div class="guest-box">
+        <div class="to">Kepada Yth. Bapak/Ibu/Saudara/i</div>
+        <div class="guest-name" id="guest-name">Tamu Undangan</div>
+        <button class="btn-open" id="btn-open">Buka Undangan</button>
+      </div>
     </div>
+    <div class="tenun tenun-bottom"></div>
     <div class="scroll-cue">⌄</div>
   </section>
 
