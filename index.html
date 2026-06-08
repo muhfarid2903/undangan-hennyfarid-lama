@@ -229,9 +229,39 @@
   #closing p { opacity: .9; font-size: 14px; max-width: 320px; margin: 0 auto; }
   .credit { margin-top: 40px; font-size: 11px; opacity: .6; letter-spacing: 1px; }
 
+  /* ---------- CHECK-IN QR ---------- */
+  #checkin { background: var(--bg-deep, #f3ece2); }
+  .qr-card {
+    background: #fff; border: 1px solid var(--line); border-radius: 18px;
+    padding: 24px; margin: 24px auto 0; max-width: 260px;
+    box-shadow: 0 12px 30px rgba(0,0,0,.06);
+  }
+  .qr-card #qrcode { display: flex; justify-content: center; }
+  .qr-card #qrcode img, .qr-card #qrcode canvas { border-radius: 8px; }
+  .qr-card .qr-name { font-family: var(--serif); font-size: 20px; margin-top: 14px; color: var(--gold); }
+
+  /* ---------- BOTTOM NAV ---------- */
+  .botnav {
+    position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 100%; max-width: 480px; z-index: 45;
+    display: none; justify-content: space-around; align-items: center;
+    background: rgba(255,255,255,.92); backdrop-filter: blur(10px);
+    border-top: 1px solid var(--line); padding: 8px 4px env(safe-area-inset-bottom,8px);
+    box-shadow: 0 -4px 20px rgba(0,0,0,.06);
+  }
+  body.opened .botnav { display: flex; }
+  .botnav a {
+    flex: 1; text-align: center; color: var(--muted); text-decoration: none;
+    font-size: 10px; letter-spacing: .5px; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    padding: 4px 0; transition: color .2s;
+  }
+  .botnav a .ic { font-size: 18px; line-height: 1; }
+  .botnav a.active { color: var(--gold); }
+
   /* ---------- MUSIC BTN ---------- */
   .music-btn {
-    position: fixed; bottom: 20px; right: calc(50% - 240px + 20px);
+    position: fixed; bottom: 78px; right: calc(50% - 240px + 16px);
     width: 48px; height: 48px; border-radius: 50%; border: none; cursor: pointer;
     background: var(--gold); color: #fff; font-size: 20px; z-index: 50;
     box-shadow: 0 6px 20px rgba(0,0,0,.25); display: none;
@@ -239,7 +269,7 @@
   body.opened .music-btn { display: flex; align-items: center; justify-content: center; }
   .music-btn.playing .ico { animation: spin 3s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  @media (max-width: 480px) { .music-btn { right: 20px; } }
+  @media (max-width: 480px) { .music-btn { right: 16px; } }
 
   /* lightbox */
   .lightbox {
@@ -369,6 +399,17 @@
       <div class="wishes reveal" id="wishes"></div>
     </section>
 
+    <!-- ================= CHECK-IN QR ================= -->
+    <section id="checkin">
+      <div class="eyebrow reveal">Check-In Kehadiran</div>
+      <div class="divider reveal"></div>
+      <p class="sub reveal" style="color:var(--muted);font-size:14px;max-width:320px;margin:0 auto">Tunjukkan QR code ini kepada penerima tamu saat tiba di lokasi acara.</p>
+      <div class="qr-card reveal">
+        <div id="qrcode"></div>
+        <div class="qr-name" id="qr-guest"></div>
+      </div>
+    </section>
+
     <!-- ================= GIFT ================= -->
     <section id="gift">
       <div class="eyebrow reveal">Amplop Digital</div>
@@ -388,12 +429,22 @@
 
   </div><!-- /.content -->
 
+  <!-- ================= BOTTOM NAV ================= -->
+  <nav class="botnav" id="botnav">
+    <a data-target="cover"><span class="ic">⌂</span><span>Home</span></a>
+    <a data-target="couple"><span class="ic">♥</span><span>Mempelai</span></a>
+    <a data-target="events"><span class="ic">❀</span><span>Acara</span></a>
+    <a data-target="gallery"><span class="ic">▦</span><span>Galeri</span></a>
+    <a data-target="rsvp"><span class="ic">✎</span><span>Ucapan</span></a>
+  </nav>
+
   <button class="music-btn" id="music-btn" title="Musik"><span class="ico">♪</span></button>
   <audio id="audio" loop></audio>
 </div>
 
 <div class="lightbox" id="lightbox"><img id="lightbox-img" alt="" /></div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 /* =================================================================
    ╔══════════════════════════════════════════════════════════╗
@@ -656,6 +707,42 @@ mbtn.addEventListener("click", () => {
   if (audio.paused) { audio.play(); mbtn.classList.add("playing"); }
   else { audio.pause(); mbtn.classList.remove("playing"); }
 });
+
+// ---- QR Check-in (muncul hanya jika ada nama tamu di link) ----
+(function(){
+  const sec = $("#checkin");
+  const name = guest ? decodeURIComponent(guest).trim() : "";
+  if (!name || typeof QRCode === "undefined") { sec.style.display = "none"; return; }
+  new QRCode($("#qrcode"), {
+    text: "CHECKIN:" + name, width: 180, height: 180,
+    colorDark: "#4a4039", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M
+  });
+  $("#qr-guest").textContent = name;
+})();
+
+// ---- Bottom nav ----
+(function(){
+  const links = $$("#botnav a");
+  const map = {};
+  links.forEach(a => {
+    map[a.dataset.target] = a;
+    a.addEventListener("click", () => {
+      const el = document.getElementById(a.dataset.target);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
+  const navIo = new IntersectionObserver((entries) => {
+    entries.forEach(en => {
+      if (en.isIntersecting && map[en.target.id]) {
+        links.forEach(l => l.classList.remove("active"));
+        map[en.target.id].classList.add("active");
+      }
+    });
+  }, { threshold: 0.4 });
+  ["cover","couple","events","gallery","rsvp"].forEach(id => {
+    const el = document.getElementById(id); if (el) navIo.observe(el);
+  });
+})();
 
 // ---- Reveal on scroll ----
 const io = new IntersectionObserver((entries) => {
