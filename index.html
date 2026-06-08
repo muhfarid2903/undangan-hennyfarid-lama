@@ -209,11 +209,15 @@
   /* ---------- COUPLE ---------- */
   #couple { background: var(--bg-deep, #f3ece2); }
   .person { margin: 30px 0; }
-  .photo-wrap { position: relative; display: inline-block; margin: 0 auto 26px; }
+  .couple-quote {
+    font-family: var(--serif); font-style: italic; font-size: 17px; line-height: 1.6;
+    color: var(--ink); max-width: 350px; margin: 22px auto 4px;
+  }
+  .photo-wrap { position: relative; display: inline-block; margin: 14px auto 26px; }
   .person .photo {
-    width: 190px; height: 248px; border-radius: 50%; object-fit: cover;
+    width: 252px; height: 326px; max-width: 78vw; border-radius: 50%; object-fit: cover;
     display: block; border: none;
-    box-shadow: 0 14px 34px rgba(65,70,58,.22);
+    box-shadow: 0 16px 38px rgba(65,70,58,.24);
   }
   .person .name {
     font-family: var(--script); font-size: 52px; color: var(--gold); line-height: 1.1;
@@ -491,6 +495,8 @@
       <p class="reveal" style="color:var(--muted);font-size:14px;max-width:340px;margin:6px auto 0">
         Dengan memohon rahmat dan ridho Allah SWT, kami bermaksud menyelenggarakan pernikahan putra-putri kami:
       </p>
+
+      <p class="couple-quote reveal">“Kami adalah sepasang insan yang sedang berbahagia. Dengan penuh syukur, kami mengundang Bapak/Ibu/Saudara/i untuk turut hadir di hari bahagia kami.”</p>
 
       <div class="person reveal">
         <div class="photo-wrap"><img class="photo" id="groom-photo" alt="Mempelai Pria" /></div>
