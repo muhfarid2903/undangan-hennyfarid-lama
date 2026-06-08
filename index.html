@@ -471,8 +471,9 @@ const CONFIG = {
     { bank: "BANK MANDIRI", number: "0987654321", holder: "a.n. Cinta Dewi Lestari" },
   ],
 
-  // --- Musik latar (URL mp3 atau path lokal "music/song.mp3"). Kosongkan "" jika tidak pakai. ---
-  music: "https://www.bensound.com/bensound-music/bensound-tenderness.mp3",
+  // --- Musik latar. Boleh 1 lagu ("musik1.mp3") atau beberapa (playlist berurutan, lalu berulang).
+  //     Kosongkan [] / "" jika tidak pakai. ---
+  music: ["musik1.mp3", "musik2.mp3"],
 
   // --- RSVP ke Google Sheets ---
   // Tempel URL Web App dari Google Apps Script di sini (lihat file CARA-RSVP-GOOGLE-SHEETS.md).
@@ -630,9 +631,23 @@ $("#btn-open").addEventListener("click", () => {
   if (CONFIG.music) playMusic();
 });
 
-// ---- Music ----
+// ---- Music (mendukung 1 lagu atau playlist) ----
 const audio = $("#audio"); const mbtn = $("#music-btn");
-if (CONFIG.music) audio.src = CONFIG.music; else mbtn.style.display = "none";
+const tracks = Array.isArray(CONFIG.music) ? CONFIG.music.filter(Boolean) : (CONFIG.music ? [CONFIG.music] : []);
+let trackIdx = 0;
+if (tracks.length) {
+  audio.src = tracks[0];
+  if (tracks.length > 1) {
+    audio.loop = false; // playlist: pindah lagu saat selesai, lalu ulang dari awal
+    audio.addEventListener("ended", () => {
+      trackIdx = (trackIdx + 1) % tracks.length;
+      audio.src = tracks[trackIdx];
+      audio.play().catch(()=>{});
+    });
+  } else {
+    audio.loop = true;
+  }
+} else { mbtn.style.display = "none"; }
 function playMusic(){ audio.play().then(()=>mbtn.classList.add("playing")).catch(()=>{}); }
 mbtn.addEventListener("click", () => {
   if (audio.paused) { audio.play(); mbtn.classList.add("playing"); }
