@@ -277,30 +277,14 @@
   /* ---------- GALLERY ---------- */
   #gallery { background: var(--bg); }
   .gal-title { font-family: var(--script); font-weight: 400; font-size: 42px; color: var(--ink); margin-top: 4px; line-height: 1.1; }
-  .gallery-wrap { margin-top: 22px; }
-  .gal-main {
-    position: relative; width: 100%; aspect-ratio: 4/5; border-radius: 16px; overflow: hidden;
-    box-shadow: 0 14px 34px rgba(74,58,82,.22); background: var(--bg-deep);
+  .gal-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 22px; }
+  .gal-grid img {
+    width: 100%; aspect-ratio: 4/5; object-fit: cover; border-radius: 12px; cursor: pointer;
+    box-shadow: 0 8px 22px rgba(74,58,82,.16);
+    transition: transform .35s ease, box-shadow .35s ease;
   }
-  .gal-main img {
-    position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
-    opacity: 0; transition: opacity 1.1s ease; cursor: pointer;
-  }
-  .gal-main img.active { opacity: 1; }
-  .gal-main img.active.zin  { animation: kbIn  7s ease-out forwards; }
-  .gal-main img.active.zout { animation: kbOut 7s ease-out forwards; }
-  @keyframes kbIn  { from { transform: scale(1);    } to { transform: scale(1.09); } }
-  @keyframes kbOut { from { transform: scale(1.09); } to { transform: scale(1);    } }
-  .gal-strip { margin-top: 12px; overflow-x: auto; scrollbar-width: none; }
-  .gal-strip::-webkit-scrollbar { display: none; }
-  .gal-track { display: flex; gap: 8px; width: max-content; margin: 0 auto; padding: 4px; }
-  .gal-track img {
-    width: 78px; height: 78px; object-fit: cover; border-radius: 10px; cursor: pointer;
-    opacity: .5; filter: brightness(.65); transition: all .35s ease; flex: 0 0 auto;
-  }
-  .gal-track img.active {
-    opacity: 1; filter: none; box-shadow: 0 0 0 2px var(--gold); transform: translateY(-2px);
-  }
+  .gal-grid img:hover { transform: scale(1.03); box-shadow: 0 12px 30px rgba(74,58,82,.26); }
+  .gal-grid img.wide { grid-column: span 2; aspect-ratio: 16/10; }
 
   /* ---------- RSVP ---------- */
   #rsvp { background: linear-gradient(160deg, var(--deep2), var(--deep)); color: #fff; }
@@ -333,15 +317,18 @@
     letter-spacing: 2px; cursor: pointer; font-weight: 500;
   }
   .btn-submit:active { transform: scale(.98); }
-  .wishes { margin-top: 30px; text-align: left; max-height: 260px; overflow-y: auto; }
-  .wish {
-    background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.18);
-    border-radius: 12px; padding: 12px 14px; margin-bottom: 10px;
+  /* tombol pembuka popup (Lihat Ucapan / Kirim Hadiah) */
+  .btn-pop {
+    margin-top: 22px; display: inline-flex; align-items: center; gap: 8px;
+    background: var(--gold); color: #fff; border: none; cursor: pointer;
+    padding: 13px 28px; border-radius: 40px; font-family: var(--sans);
+    font-size: 13px; letter-spacing: 1.5px; font-weight: 500;
+    box-shadow: 0 10px 26px rgba(189,153,104,.35); transition: transform .2s;
   }
-  .wish .w-name { font-family: var(--serif); font-size: 16px; }
-  .wish .w-meta { font-size: 11px; opacity: .7; }
-  .wish .w-msg { font-size: 13px; margin-top: 4px; opacity: .92; }
-  .badge { font-size: 10px; padding: 2px 8px; border-radius: 20px; background: rgba(255,255,255,.2); margin-left: 6px; }
+  .btn-pop:active { transform: scale(.96); }
+  #rsvp .btn-pop {
+    background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.45); box-shadow: none;
+  }
 
   /* ---------- GIFT ---------- */
   #gift { background: var(--bg); }
@@ -457,7 +444,26 @@
     from { transform: translateX(-12px) rotate(0deg); }
     to   { transform: translateX(12px) rotate(160deg); }
   }
-  @media (prefers-reduced-motion: reduce) { .petals { display: none; } }
+
+  /* ---------- PARTIKEL EMAS MELAYANG ---------- */
+  .sparkles {
+    position: fixed; top: 0; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 100%; max-width: 480px; pointer-events: none; overflow: hidden; z-index: 39;
+  }
+  .spark { position: absolute; bottom: -5%; animation: rise linear infinite; }
+  .spark i {
+    display: block; border-radius: 50%;
+    background: radial-gradient(circle, #fff6dd 0%, var(--gold-soft) 45%, rgba(225,199,154,0) 72%);
+    box-shadow: 0 0 6px rgba(225,199,154,.55);
+    animation: twinkle ease-in-out infinite;
+  }
+  @keyframes rise { to { transform: translateY(-114vh); } }
+  @keyframes twinkle {
+    0%, 100% { opacity: .12; transform: scale(.7); }
+    50%      { opacity: .95; transform: scale(1.15); }
+  }
+
+  @media (prefers-reduced-motion: reduce) { .petals, .sparkles { display: none; } }
 
   /* ---------- MUSIC BTN ---------- */
   .music-btn {
@@ -481,6 +487,13 @@
 
   /* ---------- BACKGROUND PER SEGMEN ---------- */
   .has-bg { background-repeat: no-repeat; background-position: center; background-size: cover; }
+  /* latar video (di belakang konten, di atas foto background) */
+  .bg-video-wrap {
+    position: absolute; inset: 0; z-index: 1;
+    overflow: hidden; pointer-events: none;
+  }
+  .bg-video-wrap video { width: 100%; height: 100%; object-fit: cover; }
+  .bg-video-veil { position: absolute; inset: 0; }
   /* bg sudah punya hiasan bunga & bingkai sendiri -> matikan hiasan bawaan agar tidak dobel */
   .has-bg::before, .has-bg::after { display: none !important; }
   .has-bg .frame { display: none !important; }
@@ -495,13 +508,73 @@
   /* halo putih tipis agar teks tetap terbaca di atas bunga background terang */
   .has-bg:not(.bg-white-text) { text-shadow: 0 0 7px rgba(255,251,248,.92), 0 1px 2px rgba(255,251,248,.85); }
 
-  /* lightbox */
+  /* lightbox (dengan navigasi foto) */
   .lightbox {
     position: fixed; inset: 0; background: rgba(0,0,0,.9); z-index: 100;
     display: none; align-items: center; justify-content: center; padding: 20px;
   }
   .lightbox.show { display: flex; }
-  .lightbox img { max-height: 85vh; border-radius: 8px; }
+  /* gambar tidak menangkap klik: tap foto = tutup (lewat backdrop), tombol ‹ › selalu bisa diklik */
+  .lightbox img { max-height: 82vh; max-width: calc(100vw - 40px); border-radius: 8px; pointer-events: none; }
+  .lb-btn {
+    position: absolute; z-index: 2; width: 42px; height: 42px; border-radius: 50%;
+    border: 1px solid rgba(255,255,255,.35); background: rgba(255,255,255,.12);
+    color: #fff; font-size: 22px; line-height: 1; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+  }
+  .lb-btn:active { transform: scale(.94); }
+  /* pakai calc, BUKAN translateY(-50%): transform permanen pada tombol di dalam overlay
+     fixed membuat klik meleset di Chrome saat halaman ter-scroll jauh (bug hit-test) */
+  .lb-prev { left: 12px; top: calc(50% - 21px); }
+  .lb-next { right: 12px; top: calc(50% - 21px); }
+  .lb-close { top: 16px; right: 16px; font-size: 16px; }
+  .lb-count {
+    position: absolute; bottom: 20px; left: 0; width: 100%; text-align: center;
+    color: rgba(255,255,255,.8); font-size: 12px; letter-spacing: 3px;
+  }
+
+  /* ---------- POPUP (Ucapan & Amplop Digital) ---------- */
+  .popup {
+    position: fixed; inset: 0; z-index: 90; display: none;
+    align-items: flex-end; justify-content: center;
+    background: rgba(35,20,23,.55);
+    -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+  }
+  .popup.show { display: flex; }
+  .popup-card {
+    width: 100%; max-width: 480px; max-height: 82vh;
+    background: var(--bg); border-radius: 22px 22px 0 0; position: relative;
+    padding: 28px 22px 18px; display: flex; flex-direction: column;
+    text-align: center; animation: popUp .45s cubic-bezier(.2,.8,.25,1);
+    box-shadow: 0 -16px 50px rgba(0,0,0,.3);
+  }
+  @keyframes popUp { from { transform: translateY(70px); opacity: 0; } to { transform: none; opacity: 1; } }
+  .popup-title { font-family: var(--script); font-size: 36px; color: var(--gold); line-height: 1.15; }
+  .popup-sub { font-size: 12.5px; color: var(--muted); margin-top: 6px; }
+  .popup-body { margin-top: 14px; overflow-y: auto; text-align: left; padding: 4px 2px 10px; }
+  .popup-close {
+    position: absolute; top: 14px; right: 14px; width: 34px; height: 34px; border-radius: 50%;
+    border: 1px solid var(--line); background: #fff; color: var(--muted);
+    font-size: 15px; line-height: 1; cursor: pointer;
+  }
+  /* saat modal terbuka: kunci scroll DAN matikan scroll-snap
+     (snap aktif + overflow hidden membuat hit-test klik melenceng saat halaman ter-scroll jauh) */
+  html.modal-open { overflow: hidden; scroll-snap-type: none; }
+
+  /* kartu ucapan di dalam popup */
+  .wishes { text-align: left; }
+  .wish {
+    background: #fff; border: 1px solid var(--line);
+    border-radius: 12px; padding: 12px 14px; margin-bottom: 10px;
+  }
+  .wish .w-name { font-family: var(--serif); font-size: 16px; color: var(--ink); }
+  .wish .w-meta { font-size: 11px; color: var(--muted); }
+  .wish .w-msg { font-size: 13px; margin-top: 4px; color: var(--muted); }
+  .badge {
+    font-size: 10px; padding: 2px 8px; border-radius: 20px; margin-left: 6px;
+    background: var(--bg-deep); color: var(--gold); border: 1px solid var(--gold-soft);
+  }
 
   /* ============ TAMPILAN LAPTOP (split: foto kiri + undangan kanan) ============ */
   @media (min-width: 1000px) {
@@ -517,8 +590,11 @@
       background-image: var(--desktop-photo, url('cover.jpg'));
       background-size: cover; background-position: center; z-index: 0;
     }
-    /* kelopak bunga & navigasi mengikuti panel undangan (480px kanan) */
-    .petals { left: auto; right: 0; transform: none; width: 480px; max-width: none; }
+    /* kelopak bunga, partikel & navigasi mengikuti panel undangan (480px kanan) */
+    .petals, .sparkles { left: auto; right: 0; transform: none; width: 480px; max-width: none; }
+    /* popup juga terpusat di atas panel undangan */
+    .popup { left: auto; right: 0; width: 480px; align-items: center; padding: 20px; }
+    .popup-card { border-radius: 22px; max-width: 420px; }
     /* navigasi jadi pill mengambang, ter-center di bawah panel undangan */
     .botnav {
       left: calc(100vw - 240px); right: auto; transform: translateX(-50%);
@@ -649,10 +725,7 @@
     <section id="gallery">
       <h2 class="gal-title reveal">Momen Bahagia</h2>
       <div class="divider reveal"></div>
-      <div class="gallery-wrap reveal">
-        <div class="gal-main" id="gal-main"></div>
-        <div class="gal-strip"><div class="gal-track" id="gal-track"></div></div>
-      </div>
+      <div class="gal-grid reveal" id="gal-grid"></div>
     </section>
 
     <!-- ================= RSVP ================= -->
@@ -683,7 +756,7 @@
         <textarea id="r-msg" placeholder="Tulis ucapan & doa untuk kedua mempelai..."></textarea>
         <button type="submit" class="btn-submit">Kirim</button>
       </form>
-      <div class="wishes reveal" id="wishes"></div>
+      <button type="button" class="btn-pop reveal" id="btn-wishes">💌 Lihat Ucapan &amp; Doa</button>
     </section>
 
     <!-- ================= CHECK-IN QR ================= -->
@@ -702,7 +775,7 @@
       <div class="eyebrow reveal">Amplop Digital</div>
       <div class="divider reveal"></div>
       <p class="sub reveal">Doa restu Anda merupakan karunia yang sangat berarti. Namun jika memberi tanda kasih, dapat melalui:</p>
-      <div id="gift-list"></div>
+      <button type="button" class="btn-pop reveal" id="btn-gift">🎁 Kirim Hadiah</button>
     </section>
 
     <!-- ================= CLOSING ================= -->
@@ -731,7 +804,33 @@
   <audio id="audio" loop></audio>
 </div>
 
-<div class="lightbox" id="lightbox"><img id="lightbox-img" alt="" /></div>
+<!-- ================= POPUP: UCAPAN & DOA ================= -->
+<div class="popup" id="popup-wishes">
+  <div class="popup-card">
+    <button class="popup-close" title="Tutup">✕</button>
+    <div class="popup-title">Doa &amp; Ucapan</div>
+    <div class="popup-sub">Untaian doa restu dari kerabat &amp; sahabat</div>
+    <div class="popup-body"><div class="wishes" id="wishes"></div></div>
+  </div>
+</div>
+
+<!-- ================= POPUP: AMPLOP DIGITAL ================= -->
+<div class="popup" id="popup-gift">
+  <div class="popup-card">
+    <button class="popup-close" title="Tutup">✕</button>
+    <div class="popup-title">Amplop Digital</div>
+    <div class="popup-sub">Pilih rekening, lalu salin nomornya</div>
+    <div class="popup-body"><div id="gift-list"></div></div>
+  </div>
+</div>
+
+<div class="lightbox" id="lightbox">
+  <button class="lb-btn lb-close" id="lb-close" title="Tutup">✕</button>
+  <button class="lb-btn lb-prev" id="lb-prev" title="Sebelumnya">‹</button>
+  <img id="lightbox-img" alt="" />
+  <button class="lb-btn lb-next" id="lb-next" title="Berikutnya">›</button>
+  <div class="lb-count" id="lb-count"></div>
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
@@ -807,7 +906,8 @@ const CONFIG = {
     { year: "2026", text: "Dengan restu kedua orang tua, melangkah ke jenjang pernikahan." },
   ],
 
-  // --- Galeri (URL foto). Semua foto tampil rasio 4:5 dengan slideshow zoom pelan. ---
+  // --- Galeri (URL foto). Tampil sebagai grid; foto pertama melebar.
+  //     Klik foto untuk memperbesar (bisa geser kiri/kanan). ---
   gallery: [
     "cover.jpg",
     "foto-wanita.jpg",
@@ -835,6 +935,9 @@ const CONFIG = {
   // --- Animasi kelopak bunga jatuh. false untuk mematikan. ---
   petals: true,
 
+  // --- Partikel emas halus melayang naik (berkelip). false untuk mematikan. ---
+  sparkles: true,
+
   // --- Foto besar di sisi kiri saat dibuka di laptop/desktop (layar lebar). ---
   desktopPhoto: "cover.jpg",
 
@@ -845,11 +948,12 @@ const CONFIG = {
 
   // --- Background per segmen (foto penuh + veil agar teks terbaca) ---
   //     src     : nama file gambar (di folder bg/). Kosongkan/hapus baris untuk pakai tampilan default.
+  //     video   : nama file video .mp4 (opsional) -> latar bergerak; foto src tetap jadi cadangan.
   //     whiteText: true  -> segmen berteks putih (veil gelap). Pakai untuk background bertengah gelap.
   //     hideEyebrow: true -> sembunyikan judul teks atas (mis. Bismillah sudah ada di gambar).
   //     Tukar src antar-segmen sesuka hati untuk mengganti background.
   backgrounds: {
-    cover:     { src: "bg/b1.jpeg", whiteText: true },
+    cover:     { src: "bg/b1.jpeg", video: "bg/cover-video.mp4", whiteText: true },  // video dibuat dari cover.jpg (zoom pelan); ganti dgn video aslimu kapan saja
     intro:     { src: "bg/b9.jpeg" },
     opening:   { src: "bg/b6.jpeg", whiteText: true, hideEyebrow: true },
     couple:    { src: "bg/b13.jpeg" },   // hiasan tengah atas & bawah -> aman utk section tinggi
@@ -944,44 +1048,52 @@ $("#timeline").innerHTML = CONFIG.story.map(s =>
   `<div class="tl-item"><div class="yr">${s.year}</div><div class="tx">${s.text}</div></div>`
 ).join("");
 
-// ---- Gallery (foto utama slideshow zoom + strip statis, thumbnail aktif terang) ----
-function openLightbox(src){ $("#lightbox-img").src = src; $("#lightbox").classList.add("show"); }
-$("#lightbox").addEventListener("click", () => $("#lightbox").classList.remove("show"));
+// ---- Gallery (grid foto; klik untuk lightbox dengan prev/next, swipe & keyboard) ----
 (function(){
-  const main = $("#gal-main"), track = $("#gal-track"), strip = track.parentElement;
-  const slides = [], thumbs = [];
-  CONFIG.gallery.forEach((src, i) => {
+  const grid = $("#gal-grid"), pics = CONFIG.gallery;
+  const box = $("#lightbox"), img = $("#lightbox-img"), count = $("#lb-count");
+  if (!pics.length) { $("#gallery").style.display = "none"; return; }
+  let cur = 0;
+  function show(i){
+    cur = (i + pics.length) % pics.length;
+    img.src = pics[cur];
+    count.textContent = (cur + 1) + " / " + pics.length;
+  }
+  function open(i){ show(i); box.classList.add("show"); document.documentElement.classList.add("modal-open"); }
+  function close(){ box.classList.remove("show"); document.documentElement.classList.remove("modal-open"); }
+
+  pics.forEach((src, i) => {
     const im = document.createElement("img");
     im.src = src; im.loading = "lazy"; im.alt = "Galeri " + (i+1);
-    im.classList.add(i % 2 === 0 ? "zin" : "zout"); // selang-seling zoom in / out pelan
-    im.addEventListener("click", () => openLightbox(src));
-    main.appendChild(im); slides.push(im);
-
-    const t = document.createElement("img");
-    t.src = src; t.loading = "lazy"; t.alt = "";
-    t.addEventListener("click", () => { setActive(i); resetTimer(); });
-    track.appendChild(t); thumbs.push(t);
+    // foto pertama melebar; bila sisa foto ganjil, foto terakhir ikut melebar agar grid rapi
+    if (i === 0 || (pics.length % 2 === 0 && i === pics.length - 1)) im.classList.add("wide");
+    im.addEventListener("click", () => open(i));
+    grid.appendChild(im);
   });
 
-  let gi = -1, timer = null;
-  function setActive(idx){
-    if (idx === gi) return;
-    slides.forEach((s,k) => s.classList.toggle("active", k === idx));
-    thumbs.forEach((t,k) => t.classList.toggle("active", k === idx));
-    // geser strip agar thumbnail aktif terlihat (mengikuti pilihan, bukan otomatis terus)
-    const t = thumbs[idx];
-    strip.scrollTo({ left: t.offsetLeft - strip.clientWidth/2 + t.clientWidth/2, behavior: "smooth" });
-    gi = idx;
-  }
-  function tick(){ setActive((gi + 1) % slides.length); }
-  function resetTimer(){ if (timer) clearInterval(timer); if (slides.length > 1) timer = setInterval(tick, 6500); }
-  setActive(0);
-  resetTimer();
+  $("#lb-prev").addEventListener("click", (e) => { e.stopPropagation(); show(cur - 1); });
+  $("#lb-next").addEventListener("click", (e) => { e.stopPropagation(); show(cur + 1); });
+  $("#lb-close").addEventListener("click", close);
+  box.addEventListener("click", (e) => { if (e.target === box) close(); });
+  // geser kiri/kanan di layar sentuh
+  let tx = null;
+  box.addEventListener("touchstart", (e) => { tx = e.touches[0].clientX; }, { passive: true });
+  box.addEventListener("touchend", (e) => {
+    if (tx == null) return;
+    const dx = e.changedTouches[0].clientX - tx; tx = null;
+    if (Math.abs(dx) > 40) show(cur + (dx < 0 ? 1 : -1));
+  }, { passive: true });
+  window.addEventListener("keydown", (e) => {
+    if (!box.classList.contains("show")) return;
+    if (e.key === "ArrowLeft") show(cur - 1);
+    if (e.key === "ArrowRight") show(cur + 1);
+    if (e.key === "Escape") close();
+  });
 })();
 
 // ---- Gift ----
 $("#gift-list").innerHTML = CONFIG.gifts.map((g,i) => `
-  <div class="gift-card reveal">
+  <div class="gift-card">
     <div class="bank">${g.bank}</div>
     <div class="acc" id="acc-${i}">${g.number}</div>
     <div class="holder">${g.holder}</div>
@@ -993,6 +1105,17 @@ $$(".btn-copy").forEach(b => b.addEventListener("click", () => {
     setTimeout(() => b.textContent = t, 1500);
   });
 }));
+
+// ---- Popup (Ucapan & Amplop Digital) ----
+function openPopup(sel){ $(sel).classList.add("show"); document.documentElement.classList.add("modal-open"); }
+function closePopup(p){ p.classList.remove("show"); document.documentElement.classList.remove("modal-open"); }
+$$(".popup").forEach(p => {
+  p.addEventListener("click", (e) => { if (e.target === p) closePopup(p); }); // klik area gelap = tutup
+  p.querySelector(".popup-close").addEventListener("click", () => closePopup(p));
+});
+window.addEventListener("keydown", (e) => { if (e.key === "Escape") $$(".popup.show").forEach(closePopup); });
+$("#btn-wishes").addEventListener("click", () => openPopup("#popup-wishes"));
+$("#btn-gift").addEventListener("click", () => openPopup("#popup-gift"));
 
 // ---- Countdown ----
 function tick() {
@@ -1021,6 +1144,7 @@ function renderWishes(list) {
       <div class="w-name">${esc(w.name)}<span class="badge">${esc(w.attend)}</span></div>
       <div class="w-msg">${esc(w.msg||"")}</div>
     </div>`).join("");
+  $("#btn-wishes").textContent = `💌 Lihat Ucapan & Doa (${list.length})`;
 }
 function loadWishes() {
   if (SHEET) fetch(SHEET).then(r => r.json()).then(renderWishes).catch(() => renderWishes(localList()));
@@ -1031,6 +1155,7 @@ function afterSend(btn, old){
   if (btn) btn.textContent = old;
   alert("Terima kasih, ucapan & konfirmasimu sudah tercatat 💛");
   setTimeout(loadWishes, 1000);
+  openPopup("#popup-wishes"); // tunjukkan feed ucapan setelah mengirim
 }
 // tombol kehadiran (Hadir / Tidak Hadir) — sembunyikan Jumlah Tamu jika tidak hadir
 let attendVal = "Hadir";
@@ -1127,19 +1252,35 @@ loadWishes();
   io2.observe($("#intro"));
 })();
 
-// ---- Background per segmen ----
+// ---- Background per segmen (foto, atau video bila diisi) ----
 (function(){
   const bg = CONFIG.backgrounds || {};
   Object.keys(bg).forEach(id => {
-    const cfg = bg[id]; if (!cfg || !cfg.src) return;
+    const cfg = bg[id]; if (!cfg || !(cfg.src || cfg.video)) return;
     const sec = document.getElementById(id); if (!sec) return;
     const veil = cfg.whiteText
       ? "radial-gradient(125% 80% at 50% 46%, rgba(58,28,33,.66), rgba(58,28,33,.22))"
       : "linear-gradient(rgba(249,243,239,.64), rgba(249,243,239,.64))";
-    sec.style.background = `${veil}, url('${cfg.src}') center center / cover no-repeat`;
+    if (cfg.src) sec.style.background = `${veil}, url('${cfg.src}') center center / cover no-repeat`;
     sec.classList.add("has-bg");
     if (cfg.whiteText)  sec.classList.add("bg-white-text");
     if (cfg.hideEyebrow) sec.classList.add("bg-hide-eyebrow");
+    if (cfg.video) {
+      const wrap = document.createElement("div"); wrap.className = "bg-video-wrap";
+      const v = document.createElement("video");
+      v.muted = true; v.loop = true; v.autoplay = true; v.playsInline = true;
+      v.setAttribute("muted", ""); v.setAttribute("playsinline", ""); // wajib utk autoplay iOS
+      v.preload = "metadata"; v.src = cfg.video;
+      const ve = document.createElement("div"); ve.className = "bg-video-veil";
+      ve.style.background = veil;
+      wrap.appendChild(v); wrap.appendChild(ve);
+      v.addEventListener("error", () => wrap.remove()); // file tak ada -> kembali ke foto
+      sec.prepend(wrap);
+      // hemat baterai: video hanya berputar saat segmennya terlihat
+      new IntersectionObserver((es) => es.forEach(en => {
+        if (en.isIntersecting) v.play().catch(()=>{}); else v.pause();
+      }), { threshold: .15 }).observe(sec);
+    }
   });
 })();
 
@@ -1234,6 +1375,24 @@ mbtn.addEventListener("click", () => {
   ["intro","couple","events","countdown","gallery","rsvp","gift"].forEach(id => {
     const el = document.getElementById(id); if (el) navIo.observe(el);
   });
+})();
+
+// ---- Partikel emas melayang (naik perlahan + berkelip) ----
+(function(){
+  if (CONFIG.sparkles === false) return;
+  const wrap = document.createElement("div"); wrap.className = "sparkles";
+  for (let i = 0; i < 14; i++) {
+    const s = document.createElement("div"); s.className = "spark";
+    const size = 3 + Math.random() * 5;
+    s.style.left = (Math.random() * 100) + "%";
+    s.style.animationDuration = (11 + Math.random() * 10) + "s";
+    s.style.animationDelay = (-Math.random() * 18) + "s";
+    const ic = document.createElement("i");
+    ic.style.width = size + "px"; ic.style.height = size + "px";
+    ic.style.animationDuration = (1.6 + Math.random() * 2.2) + "s";
+    s.appendChild(ic); wrap.appendChild(s);
+  }
+  document.querySelector(".app").appendChild(wrap);
 })();
 
 // ---- Animasi kelopak bunga jatuh ----
