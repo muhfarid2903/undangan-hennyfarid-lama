@@ -38,7 +38,8 @@
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html { scroll-behavior: smooth; scroll-snap-type: y proximity; }
+  /* tanpa scroll-snap agar scroll mengalir mulus (snap membuat viewport tertarik-tarik ke batas frame) */
+  html { scroll-behavior: smooth; }
   body {
     font-family: var(--sans);
     color: var(--ink);
@@ -69,7 +70,6 @@
     padding: 96px 28px;
     text-align: center;
     overflow: hidden;
-    scroll-snap-align: start;
   }
   section > * { position: relative; z-index: 2; width: 100%; }
 
@@ -107,9 +107,15 @@
   /* teks pengantar segmen — satu gaya untuk semua */
   section .sub { font-family: var(--serif-i); font-size: 16.5px; color: var(--muted); max-width: 340px; margin: 0 auto; }
 
-  /* Reveal-on-scroll */
-  .reveal { opacity: 0; transform: translateY(28px); transition: all .9s cubic-bezier(.2,.7,.2,1); }
-  .reveal.show { opacity: 1; transform: none; }
+  /* Reveal-on-scroll — 4 varian arah: bawah (default), kiri, kanan, zoom */
+  .reveal, .reveal-left, .reveal-right, .reveal-zoom {
+    opacity: 0; transition: all .9s cubic-bezier(.2,.7,.2,1);
+  }
+  .reveal       { transform: translateY(28px); }
+  .reveal-left  { transform: translateX(-36px); }
+  .reveal-right { transform: translateX(36px); }
+  .reveal-zoom  { transform: scale(.88); }
+  .reveal.show, .reveal-left.show, .reveal-right.show, .reveal-zoom.show { opacity: 1; transform: none; }
 
   /* ---------- LOADING SCREEN ---------- */
   .loader {
@@ -228,9 +234,12 @@
   #opening p.sub { margin-top: 18px; }
 
   /* ---------- COUPLE ---------- */
-  #couple { background: var(--bg-deep, #f3ece2); }
+  #couple, #couple2 { background: var(--bg-deep, #f3ece2); padding-top: 52px; padding-bottom: 52px; }
+  /* bg17: bingkai bunga di background jadi "bingkai foto" -> foto diperbesar di tengahnya */
+  #couple .photo-wrap, #couple2 .photo-wrap { margin: 10px auto 18px; }
+  #couple .person .photo, #couple2 .person .photo { width: 268px; height: 348px; }
   .couple-intro { font-family: var(--serif-i); font-size: 16.5px; color: var(--muted); max-width: 340px; margin: 12px auto 0; line-height: 1.65; }
-  .person { margin: 30px 0; }
+  .person { margin: 20px 0; }
   .couple-quote {
     font-family: var(--serif-i); font-size: 17.5px; line-height: 1.6;
     color: var(--ink); max-width: 350px; margin: 22px auto 4px;
@@ -301,6 +310,8 @@
   }
   .gal-grid img:hover { transform: scale(1.03); box-shadow: 0 12px 30px rgba(74,58,82,.26); }
   .gal-grid img.wide { grid-column: span 2; aspect-ratio: 16/10; }
+  /* saat reveal, pakai transisi .9s (kelas dilepas setelah selesai agar hover kembali gesit) */
+  .gal-grid img.reveal-zoom { transition: opacity .9s cubic-bezier(.2,.7,.2,1), transform .9s cubic-bezier(.2,.7,.2,1); }
 
   /* ---------- RSVP ---------- */
   #rsvp { background: linear-gradient(160deg, var(--deep2), var(--deep)); color: #fff; }
@@ -413,6 +424,12 @@
   .intro-slide .i-parents { font-family: var(--serif); font-size: 15px; color: var(--muted); line-height: 1.5; }
   .intro-slide .i-amp { font-family: var(--script); font-size: 26px; color: var(--ink); margin: 4px 0; }
   .intro-slide .i-note { font-family: var(--serif-i); font-size: 15.5px; color: var(--muted); letter-spacing: .5px; margin-top: 6px; }
+  /* slide ber-background gelap (white: true) -> teks putih + bayangan halus */
+  .intro-slide.i-white .i-big, .intro-slide.i-white .i-text,
+  .intro-slide.i-white .i-name, .intro-slide.i-white .i-amp { color: #fff; }
+  .intro-slide.i-white .i-sub, .intro-slide.i-white .i-small,
+  .intro-slide.i-white .i-parents, .intro-slide.i-white .i-note { color: rgba(255,255,255,.88); }
+  .intro-slide.i-white > div { text-shadow: 0 1px 10px rgba(30,15,17,.55); }
   .intro-dots { position: absolute; bottom: 38px; left: 0; width: 100%; display: flex; gap: 8px; justify-content: center; z-index: 3; }
   .intro-dots b { width: 7px; height: 7px; border-radius: 50%; background: rgba(110,64,70,.25); transition: all .3s; }
   .intro-dots b.on { background: var(--gold); transform: scale(1.25); }
@@ -495,7 +512,7 @@
 
   /* tekstur botani vintage samar (hanya bagian terang; ditaruh setelah
      definisi section agar warna dasar tetap, hanya menambah gambar tekstur) */
-  #opening, #couple, #events, #story, #gallery, #gift, #checkin {
+  #opening, #couple, #couple2, #events, #story, #gallery, #gift, #checkin {
     background-image: url('texture.svg?v=2');
     background-repeat: repeat;
     background-size: 240px;
@@ -574,9 +591,8 @@
     border: 1px solid var(--line); background: #fff; color: var(--muted);
     font-size: 15px; line-height: 1; cursor: pointer;
   }
-  /* saat modal terbuka: kunci scroll DAN matikan scroll-snap
-     (snap aktif + overflow hidden membuat hit-test klik melenceng saat halaman ter-scroll jauh) */
-  html.modal-open { overflow: hidden; scroll-snap-type: none; }
+  /* saat modal terbuka: kunci scroll */
+  html.modal-open { overflow: hidden; }
 
   /* kartu ucapan di dalam popup */
   .wishes { text-align: left; }
@@ -679,17 +695,20 @@
         Kami adalah sepasang manusia yang sedang berbahagia. Kami mengundang Bapak/Ibu/Saudara sekalian untuk menghadiri hari bahagia kami. Ini adalah kami.
       </p>
 
-      <div class="person reveal">
+      <div class="person reveal-left">
         <div class="photo-wrap"><img class="photo" id="bride-photo" alt="Mempelai Wanita" /></div>
         <div class="name" id="bride-name">Cinta</div>
         <div class="full" id="bride-full">Cinta Dewi, S.Pd.</div>
         <div class="parents" id="bride-parents"></div>
         <a class="ig" id="bride-ig" target="_blank" rel="noopener">@instagram</a>
       </div>
+    </section>
 
+    <!-- frame kedua: mempelai pria -->
+    <section id="couple2">
       <div class="amp reveal">&amp;</div>
 
-      <div class="person reveal">
+      <div class="person reveal-right">
         <div class="photo-wrap"><img class="photo" id="groom-photo" alt="Mempelai Pria" /></div>
         <div class="name" id="groom-name">Rangga</div>
         <div class="full" id="groom-full">Rangga Putra, S.T.</div>
@@ -717,14 +736,14 @@
       <div class="divider reveal"></div>
       <p class="sub reveal">Insya Allah akan dilaksanakan pada:</p>
 
-      <div class="event-card reveal">
+      <div class="event-card reveal-left">
         <h3>Akad Nikah</h3>
         <div class="when" id="akad-when"></div>
         <div class="where" id="akad-where"></div>
         <a class="btn-map" id="akad-map" target="_blank" rel="noopener">📍 Lihat Lokasi</a>
       </div>
 
-      <div class="event-card reveal">
+      <div class="event-card reveal-right">
         <h3>Resepsi</h3>
         <div class="when" id="resepsi-when"></div>
         <div class="where" id="resepsi-where"></div>
@@ -743,7 +762,7 @@
     <section id="gallery">
       <h2 class="sec-title reveal">Momen Bahagia</h2>
       <div class="divider reveal"></div>
-      <div class="gal-grid reveal" id="gal-grid"></div>
+      <div class="gal-grid" id="gal-grid"></div>
     </section>
 
     <!-- ================= RSVP ================= -->
@@ -814,7 +833,6 @@
     <a data-target="intro"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5V20a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 20Z"/><path d="M9 21.5v-8h6v8"/></svg></span><span>Home</span></a>
     <a data-target="couple"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.9a5.3 5.3 0 0 0-7.5 0L12 6.2l-1.3-1.3a5.3 5.3 0 0 0-7.5 7.5l1.3 1.3L12 21.2l7.5-7.5 1.3-1.3a5.3 5.3 0 0 0 0-7.5Z"/></svg></span><span>Mempelai</span></a>
     <a data-target="events"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="13.5" r="5.5"/><circle cx="15" cy="10.5" r="5.5"/></svg></span><span>Acara</span></a>
-    <a data-target="countdown"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="16" rx="2"/><path d="M8 3v4M16 3v4M3.5 10.5h17"/></svg></span><span>Kalender</span></a>
     <a data-target="gallery"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="2"/><circle cx="9" cy="9" r="1.6"/><path d="m20.5 15.5-4.5-4.5-9.5 9.5"/></svg></span><span>Galeri</span></a>
     <a data-target="rsvp"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 14.5a2 2 0 0 1-2 2H8l-4.5 4V5a2 2 0 0 1 2-2H19a2 2 0 0 1 2 2Z"/></svg></span><span>Ucapan</span></a>
     <a data-target="gift"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12.5V21H4v-8.5M2.5 7.5h19v5h-19zM12 21V7.5"/><path d="M12 7.5H7.8a2.4 2.4 0 1 1 0-4.8C11 2.7 12 7.5 12 7.5ZM12 7.5h4.2a2.4 2.4 0 1 0 0-4.8C13 2.7 12 7.5 12 7.5Z"/></svg></span><span>Hadiah</span></a>
@@ -890,13 +908,14 @@ const CONFIG = {
   //     Slide bebas: pakai sub, big ("{names}"=nama mempelai), text, note. Tambah hold (ms) untuk atur durasi.
   //     Tambah/kurangi/urutkan slide sesuka hati. ---
   //     Tiap slide bisa punya "bg" sendiri (background-nya ikut berganti saat slide berganti).
+  //     Untuk bg gelap, tambah white: true -> veil gelap + teks putih agar terbaca.
   intro: [
-    { type: "hero", note: "Sakinah, Mawaddah, wa Rahmah", bg: "bg/b9.jpeg" },  // The Wedding Of + nama mempelai
-    { type: "ayat", bg: "bg/b13.jpeg" },                       // ayat + ayatRef di atas
+    { type: "hero", note: "Sakinah, Mawaddah, wa Rahmah", bg: "bg/bg19.png" },  // The Wedding Of + nama mempelai
+    { type: "ayat", bg: "bg/bg18.png" },                       // ayat + ayatRef di atas
     { type: "photo", src: "galeri1.jpg" },                     // slide foto full (ganti filenya sesukamu)
     { type: "photo", src: "galeri3.jpg" },                     // slide foto full kedua (atau hapus baris ini)
-    { type: "couple", bg: "bg/b11.jpeg" },                     // salam + mempelai + orang tua
-    { type: "hormat", bg: "bg/b3.jpeg" },                      // kehormatan + hormat kami
+    { type: "couple", bg: "bg/bg17.png" },                     // salam + mempelai + orang tua
+    { type: "hormat", bg: "bg/bg20.png", white: true },        // kehormatan + hormat kami (bg gelap -> teks putih)
   ],
 
   // --- Tanggal utama (untuk countdown & kalender). Format: YYYY-MM-DDTHH:MM+08:00
@@ -974,9 +993,10 @@ const CONFIG = {
   //     Tukar src antar-segmen sesuka hati untuk mengganti background.
   backgrounds: {
     cover:     { src: "bg/b1.jpeg", video: "bg/cover-video.mp4", whiteText: true },  // video dibuat dari cover.jpg (zoom pelan); ganti dgn video aslimu kapan saja
-    intro:     { src: "bg/b9.jpeg" },
+    intro:     { src: "bg/bg18.png" },
     opening:   { src: "bg/b6.jpeg", whiteText: true, hideEyebrow: true },
-    couple:    { src: "bg/b12.jpeg" },   // tekstur putih, aksen hanya di pojok -> judul & nama tetap terbaca
+    couple:    { src: "bg/b4.jpeg", veil: .22 },   // tekstur putih + bunga maroon kiri, foto mempelai jadi pusatnya
+    couple2:   { src: "bg/b4-flip.jpeg", veil: .22 },   // b4 dicerminkan -> bunga di sisi kanan
     countdown: { src: "bg/b8.jpeg", whiteText: true },
     events:    { src: "bg/b11.jpeg" },
     story:     { src: "bg/b16.jpeg" },
@@ -1124,6 +1144,13 @@ $("#timeline").innerHTML = CONFIG.story.map(s =>
   pics.forEach((src, i) => {
     const im = document.createElement("img");
     im.src = src; im.loading = "lazy"; im.alt = "Galeri " + (i+1);
+    // muncul bergantian (stagger 0.12s) sambil membesar; kelas dilepas usai animasi
+    im.classList.add("reveal-zoom");
+    im.style.transitionDelay = (i * 0.12) + "s";
+    im.addEventListener("transitionend", () => {
+      im.classList.remove("reveal-zoom", "show");
+      im.style.transitionDelay = "";
+    }, { once: true });
     // foto pertama melebar; bila sisa foto ganjil, foto terakhir ikut melebar agar grid rapi
     if (i === 0 || (pics.length % 2 === 0 && i === pics.length - 1)) im.classList.add("wide");
     im.addEventListener("click", () => open(i));
@@ -1287,8 +1314,11 @@ loadWishes();
     d.className = "intro-slide" + (s.type === "photo" ? " i-photo" : "");
     d.innerHTML = slideHTML(s);
     if (s.bg) {
-      const veil = "linear-gradient(rgba(249,243,239,.6), rgba(249,243,239,.6))";
+      const veil = s.white
+        ? "linear-gradient(rgba(43,24,27,.52), rgba(43,24,27,.52))"
+        : "linear-gradient(rgba(249,243,239,.6), rgba(249,243,239,.6))";
       d.style.background = `${veil}, url('${s.bg}') center center / cover no-repeat`;
+      if (s.white) d.classList.add("i-white");
     }
     stage.appendChild(d);
     const dot = document.createElement("b"); dotsWrap.appendChild(dot);
@@ -1317,9 +1347,10 @@ loadWishes();
   Object.keys(bg).forEach(id => {
     const cfg = bg[id]; if (!cfg || !(cfg.src || cfg.video)) return;
     const sec = document.getElementById(id); if (!sec) return;
+    const op = (cfg.veil != null) ? cfg.veil : .64;   // 0..1, makin kecil makin terlihat gambarnya
     const veil = cfg.whiteText
       ? "radial-gradient(125% 80% at 50% 46%, rgba(58,28,33,.66), rgba(58,28,33,.22))"
-      : "linear-gradient(rgba(249,243,239,.64), rgba(249,243,239,.64))";
+      : `linear-gradient(rgba(249,243,239,${op}), rgba(249,243,239,${op}))`;
     if (cfg.src) sec.style.background = `${veil}, url('${cfg.src}') center center / cover no-repeat`;
     sec.classList.add("has-bg");
     if (cfg.whiteText)  sec.classList.add("bg-white-text");
@@ -1431,7 +1462,8 @@ mbtn.addEventListener("click", () => {
       }
     });
   }, { threshold: 0.4 });
-  ["intro","couple","events","countdown","gallery","rsvp","gift"].forEach(id => {
+  map["couple2"] = map["couple"];   // frame mempelai pria ikut menyalakan tab Mempelai
+  ["intro","couple","couple2","events","countdown","gallery","rsvp","gift"].forEach(id => {
     const el = document.getElementById(id); if (el) navIo.observe(el);
   });
 })();
@@ -1478,7 +1510,7 @@ mbtn.addEventListener("click", () => {
 const io = new IntersectionObserver((entries) => {
   entries.forEach(en => { if (en.isIntersecting) { en.target.classList.add("show"); io.unobserve(en.target); } });
 }, { threshold: 0.15 });
-$$(".reveal").forEach(el => io.observe(el));
+$$(".reveal, .reveal-left, .reveal-right, .reveal-zoom").forEach(el => io.observe(el));
 
 // ---- Animasi ketik + aktivasi tiap frame ----
 function typeText(el, speed, text) {
@@ -1501,10 +1533,8 @@ const frameIo = new IntersectionObserver((entries) => {
     // ketik judul (lewati teks Arab agar harakat tidak rusak)
     if (eb && !/[؀-ۿ]/.test(eb.textContent)) typeText(eb, 55);
     if (sec.id === "opening") { const a = sec.querySelector(".ayat"); if (a) typeText(a, 16); }
-    if (sec.id === "couple") {
-      typeText($("#groom-name"), 130);
-      setTimeout(() => typeText($("#bride-name"), 130), 1000);
-    }
+    if (sec.id === "couple")  typeText($("#bride-name"), 130);
+    if (sec.id === "couple2") typeText($("#groom-name"), 130);
   });
 }, { threshold: 0.3 });
 $$("section").forEach(s => frameIo.observe(s));
