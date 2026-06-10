@@ -122,12 +122,17 @@
   .loader-inner { text-align: center; color: #fff; animation: fadeUp 1s both; }
   .loader-eyebrow { font-size: 11px; letter-spacing: 4px; text-transform: uppercase; opacity: .8; }
   .loader-script { font-family: var(--script); font-size: 52px; color: #fff; margin: 6px 0; text-shadow: 0 2px 18px rgba(0,0,0,.4); }
-  .loader-ring {
-    width: 42px; height: 42px; margin: 18px auto 12px;
-    border: 2px solid rgba(255,255,255,.25); border-top-color: var(--gold-soft);
-    border-radius: 50%; animation: spin 1s linear infinite;
+  .loader-bar {
+    width: 190px; height: 2px; margin: 22px auto 14px;
+    background: rgba(255,255,255,.22); border-radius: 2px; overflow: hidden;
+  }
+  .loader-bar i {
+    display: block; height: 100%; width: 0;
+    background: linear-gradient(90deg, var(--gold-soft), #fff);
+    border-radius: 2px; transition: width .25s ease;
   }
   .loader-text { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; opacity: .75; }
+  #loader-pct { color: var(--gold-soft); font-weight: 500; }
   @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
 
   /* animasi masuk elemen cover setelah loader hilang */
@@ -400,14 +405,14 @@
   /* slide foto full-bleed (mengisi seluruh frame) */
   .intro-slide.i-photo { padding: 0; }
   .intro-slide.i-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .intro-slide .i-sub { font-size: 12px; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); font-weight: 500; }
-  .intro-slide .i-big { font-family: var(--script); font-size: 52px; line-height: 1.15; color: var(--deep); }
+  .intro-slide .i-sub { font-size: 12px; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  .intro-slide .i-big { font-family: var(--script); font-size: 42px; line-height: 1.15; color: var(--ink); }
   .intro-slide .i-text { font-family: var(--serif-i); font-size: 18.5px; line-height: 1.65; color: var(--ink); }
-  .intro-slide .i-small { font-family: var(--serif); font-size: 15px; line-height: 1.55; color: var(--muted); max-width: 320px; }
-  .intro-slide .i-name { font-family: var(--script); font-size: 30px; line-height: 1.15; color: var(--deep); margin-top: 4px; }
+  .intro-slide .i-small { font-family: var(--serif-i); font-size: 16px; line-height: 1.6; color: var(--muted); max-width: 320px; }
+  .intro-slide .i-name { font-family: var(--script); font-size: 30px; line-height: 1.15; color: var(--ink); margin-top: 4px; }
   .intro-slide .i-parents { font-family: var(--serif); font-size: 15px; color: var(--muted); line-height: 1.5; }
-  .intro-slide .i-amp { font-family: var(--script); font-size: 26px; color: var(--gold); margin: 4px 0; }
-  .intro-slide .i-note { font-family: var(--serif-i); font-size: 15.5px; color: var(--gold); letter-spacing: .5px; margin-top: 6px; }
+  .intro-slide .i-amp { font-family: var(--script); font-size: 26px; color: var(--ink); margin: 4px 0; }
+  .intro-slide .i-note { font-family: var(--serif-i); font-size: 15.5px; color: var(--muted); letter-spacing: .5px; margin-top: 6px; }
   .intro-dots { position: absolute; bottom: 38px; left: 0; width: 100%; display: flex; gap: 8px; justify-content: center; z-index: 3; }
   .intro-dots b { width: 7px; height: 7px; border-radius: 50%; background: rgba(110,64,70,.25); transition: all .3s; }
   .intro-dots b.on { background: var(--gold); transform: scale(1.25); }
@@ -626,8 +631,8 @@
     <div class="loader-inner">
       <div class="loader-eyebrow">The Wedding Of</div>
       <div class="loader-script" id="loader-names">Henny &amp; Farid</div>
-      <div class="loader-ring"></div>
-      <div class="loader-text">Memuat Undangan…</div>
+      <div class="loader-bar"><i id="loader-fill"></i></div>
+      <div class="loader-text">Memuat Undangan… <span id="loader-pct">0%</span></div>
     </div>
   </div>
 
@@ -1009,12 +1014,32 @@ const mainDate = new Date(CONFIG.mainDate);
 $("#loader-names").textContent = coupleNames;
 // Catatan: tema ungu pakai latar gradien (CSS). Foto kalian tampil di Galeri.
 
-// ---- Loading screen + ketik nama cover ----
+// ---- Loading screen: progres 0 -> 100% + ketik nama cover ----
+// Persen merambat cepat di awal, tertahan di ~90% sampai halaman benar-benar
+// siap (event load), lalu melesat ke 100% dan loader memudar.
+let loaderPct = 0, loaderDone = false;
+function setLoaderPct(v){
+  loaderPct = Math.min(100, Math.max(loaderPct, Math.round(v)));
+  $("#loader-pct").textContent = loaderPct + "%";
+  $("#loader-fill").style.width = loaderPct + "%";
+}
+const loaderTrickle = setInterval(() => {
+  if (loaderPct < 90) setLoaderPct(loaderPct + (loaderPct < 60 ? 3 + Math.random() * 4 : 1));
+}, 90);
 function revealCover(){
-  document.body.classList.add("loaded");
-  setTimeout(() => $("#loader").classList.add("hide"), 500);   // loader mulai memudar
-  // ketik nama cover SETELAH loader benar-benar hilang (hindari berbayang)
-  setTimeout(() => { const n = $("#cover-names"); typeText(n, 150, n.dataset.full); }, 1550);
+  if (loaderDone) return;
+  loaderDone = true;
+  clearInterval(loaderTrickle);
+  const sprint = setInterval(() => {
+    setLoaderPct(loaderPct + 4);
+    if (loaderPct >= 100) {
+      clearInterval(sprint);
+      document.body.classList.add("loaded");
+      setTimeout(() => $("#loader").classList.add("hide"), 250);   // loader mulai memudar
+      // ketik nama cover SETELAH loader benar-benar hilang (hindari berbayang)
+      setTimeout(() => { const n = $("#cover-names"); typeText(n, 150, n.dataset.full); }, 1300);
+    }
+  }, 30);
 }
 window.addEventListener("load", revealCover);
 setTimeout(revealCover, 4000); // fallback bila event load lambat
@@ -1238,16 +1263,16 @@ loadWishes();
     if (s.type === "couple") { const g = CONFIG.groom, b = CONFIG.bride; return `
       <div class="i-sub">Assalamu'alaikum Wr. Wb.</div>
       <div class="i-small">Dengan memohon rahmat dan ridho Allah SWT, kami bermaksud menyelenggarakan pernikahan putra-putri kami:</div>
-      <div class="i-name">${esc(g.full)}</div>
-      <div class="i-parents">${esc(g.childOrder)} dari<br>${ortu(g)}</div>
-      <div class="i-amp">Dengan</div>
       <div class="i-name">${esc(b.full)}</div>
-      <div class="i-parents">${esc(b.childOrder)} dari<br>${ortu(b)}</div>`; }
+      <div class="i-parents">${esc(b.childOrder)} dari<br>${ortu(b)}</div>
+      <div class="i-amp">Dengan</div>
+      <div class="i-name">${esc(g.full)}</div>
+      <div class="i-parents">${esc(g.childOrder)} dari<br>${ortu(g)}</div>`; }
     if (s.type === "hormat") { const g = CONFIG.groom, b = CONFIG.bride; return `
       <div class="i-small">Merupakan suatu kehormatan dan kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan hadir dan memberikan doa restu kepada kedua mempelai.</div>
       <div class="i-sub" style="margin-top:14px">Hormat Kami Yang Mengundang</div>
-      <div class="i-parents">${pair(g)}</div>
-      <div class="i-parents">${pair(b)}</div>`; }
+      <div class="i-parents">${pair(b)}</div>
+      <div class="i-parents">${pair(g)}</div>`; }
     let h = "";
     if (s.sub)  h += `<div class="i-sub">${esc(s.sub)}</div>`;
     if (s.big)  h += `<div class="i-big">${esc(String(s.big).replace("{names}", coupleNames))}</div>`;
