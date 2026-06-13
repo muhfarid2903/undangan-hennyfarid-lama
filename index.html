@@ -1060,11 +1060,11 @@ const CONFIG = {
   //     Untuk bg gelap, tambah white: true -> veil gelap + teks putih agar terbaca.
   //     veil: 0..1 (opsional) -> ketebalan lapisan di atas gambar; makin kecil makin terlihat gambarnya.
   intro: [
-    { type: "hero", note: "Sakinah, Mawaddah, wa Rahmah", video: "videointro.mp4", veil: .28 },  // video intro ±6 detik (tanpa teks) + overlay The Wedding Of + nama muncul di detik ke-2
-    { type: "ayat", bg: "bgintro2.png", veil: .32 },   // ayat + ayatRef (background terang -> teks gelap sage)
+    { type: "hero", note: "Sakinah, Mawaddah, wa Rahmah", video: "videointro.mp4", veil: .28, delayText: true },  // video intro ±6 detik (tanpa teks) + overlay The Wedding Of + nama muncul di detik ke-2
+    { type: "ayat", bg: "bgintro2.jpg", veil: .32 },   // ayat + ayatRef (background terang -> teks gelap sage)
     { type: "photo", src: "galeri3.jpg" },                     // slide foto full (ganti filenya sesukamu)
     { type: "photo", src: "galeri14.jpg" },                    // slide foto full kedua (atau hapus baris ini)
-    { type: "couple", bg: "bgintro5.png", veil: .32 },  // salam + mempelai + orang tua (background terang -> teks gelap sage)
+    { type: "couple", bg: "bgintro5.jpg", veil: .32 },  // salam + mempelai + orang tua (background terang -> teks gelap sage)
     { type: "hormat", bg: "bgintro6.jpeg", white: true, veil: .38 },  // kehormatan + hormat kami
   ],
 
@@ -1154,7 +1154,7 @@ const CONFIG = {
   //     Tukar src antar-segmen sesuka hati untuk mengganti background.
   backgrounds: {
     // cover: pakai bg/bg.jpeg langsung lewat CSS (#cover) dengan veil gelap; video mempelai tetap di bingkai foto
-    opening:   { src: "bg/bg.jpeg", veil: .4 },
+    opening:   { src: "bg/bg.jpeg", video: "bg/ayat-video.mp4", veil: .25 },
     couple:    { src: "bg/bg.jpeg", veil: .4 },
     couple2:   { src: "bg/bg.jpeg", veil: .4 },
     countdown: { src: "bg/bg.jpeg", veil: .4 },
@@ -1492,7 +1492,7 @@ loadWishes();
       v.addEventListener("error", () => { wrap.remove(); if (s.bg) d.style.background = `${veil}, url('${s.bg}') center center / cover no-repeat`; }); // video gagal -> foto bila ada
       d.prepend(wrap);
       d._vid = v;  // disimpan utk play/pause saat slide tampil
-      if (!s.bare) d.classList.add("i-delay-text");  // bunga mekar dulu, teks overlay muncul menyusul (jika ada)
+      if (s.delayText) d.classList.add("i-delay-text");  // (opsional) bunga mekar dulu, teks overlay muncul menyusul
       if (s.white) d.classList.add("i-white");
     } else if (s.bg) {
       d.style.background = `${veil}, url('${s.bg}') center center / cover no-repeat`;
