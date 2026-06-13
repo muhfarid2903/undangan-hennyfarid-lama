@@ -536,6 +536,25 @@
     opacity: 0; transition: opacity 1.2s ease; pointer-events: none;
   }
   .intro-slide.show { opacity: 1; }
+  /* teks slide di atas latar video (.bg-video-wrap z-index:1) */
+  .intro-slide > div:not(.bg-video-wrap) { position: relative; z-index: 2; }
+  /* slide video: biarkan bunga mekar dulu, teks fade-in menyusul */
+  .intro-slide.i-delay-text > div:not(.bg-video-wrap) {
+    opacity: 0; transform: translateY(10px); transition: opacity 1.2s ease, transform 1.2s ease;
+  }
+  .intro-slide.i-delay-text.show > div:not(.bg-video-wrap) {
+    opacity: 1; transform: none; transition-delay: 2s;
+  }
+  /* naikkan sedikit posisi teks overlay di slide video */
+  .intro-slide.i-delay-text { padding-bottom: 150px; }
+  /* naikkan sedikit posisi teks slide ayat */
+  .intro-slide.i-t-ayat { padding-bottom: 180px; }
+  /* slide couple (bg krem floral + merak): palet teal merak pekat */
+  .intro-slide.i-t-couple .i-name,
+  .intro-slide.i-t-couple .i-amp    { color: #1d5b54; }
+  .intro-slide.i-t-couple .i-small,
+  .intro-slide.i-t-couple .i-parents { color: #5b4a3a; }
+  .intro-slide.i-t-couple .i-sub    { color: #9a7d54; }
   /* slide foto full-bleed (mengisi seluruh frame) */
   .intro-slide.i-photo { padding: 0; }
   .intro-slide.i-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -1056,11 +1075,11 @@ const CONFIG = {
   //     Untuk bg gelap, tambah white: true -> veil gelap + teks putih agar terbaca.
   //     veil: 0..1 (opsional) -> ketebalan lapisan di atas gambar; makin kecil makin terlihat gambarnya.
   intro: [
-    { type: "hero", note: "Sakinah, Mawaddah, wa Rahmah", bg: "bgintro1.jpeg", veil: .18 },  // The Wedding Of + nama mempelai
-    { type: "ayat", bg: "bgintro2.jpeg", white: true, veil: .3 },   // ayat + ayatRef di atas (damask gelap -> teks putih)
+    { type: "hero", note: "Sakinah, Mawaddah, wa Rahmah", video: "videointro.mp4", veil: .28 },  // video intro ±6 detik (tanpa teks) + overlay The Wedding Of + nama muncul di detik ke-2
+    { type: "ayat", bg: "bgintro2.png", veil: .32 },   // ayat + ayatRef (background terang -> teks gelap sage)
     { type: "photo", src: "galeri3.jpg" },                     // slide foto full (ganti filenya sesukamu)
     { type: "photo", src: "galeri14.jpg" },                    // slide foto full kedua (atau hapus baris ini)
-    { type: "couple", bg: "bgintro5.jpeg", white: true, veil: .32 },  // salam + mempelai + orang tua
+    { type: "couple", bg: "bgintro5.png", veil: .32 },  // salam + mempelai + orang tua (background terang -> teks gelap sage)
     { type: "hormat", bg: "bgintro6.jpeg", white: true, veil: .38 },  // kehormatan + hormat kami
   ],
 
@@ -1436,6 +1455,7 @@ loadWishes();
   const ortu = p => p.mother ? `${esc(p.father)}<br>&amp; ${esc(p.mother)}` : esc(p.father);
   const pair = p => p.mother ? `${esc(p.father)} &amp; ${esc(p.mother)}` : esc(p.father);
   function slideHTML(s){
+    if (s.bare) return "";  // hanya latar video/foto, tanpa teks overlay
     if (s.type === "photo") return `<img src="${esc(s.src)}" alt="" loading="lazy" />`;
     if (s.type === "hero") return `
       <div class="i-sub">The Wedding Of</div>
@@ -1464,17 +1484,32 @@ loadWishes();
     if (s.note) h += `<div class="i-note">${esc(s.note)}</div>`;
     return h;
   }
-  const holdFor = s => s.hold || ({ hero:3800, ayat:7000, photo:4500, couple:8500, hormat:7000 }[s.type] || 4800);
+  // Slide hero spesial: video ±6s diputar utuh sekali. Bunga mekar, di detik ke-2 teks fade-in (±1.2s) lalu terbaca sampai video selesai.
+  const holdFor = s => s.hold || ({ hero:6000, ayat:7000, photo:4500, couple:8500, hormat:7000 }[s.type] || 4800);
 
   const els = slides.map(s => {
     const d = document.createElement("div");
-    d.className = "intro-slide" + (s.type === "photo" ? " i-photo" : "");
+    d.className = "intro-slide" + (s.type === "photo" ? " i-photo" : "") + (s.type ? " i-t-" + s.type : "");
     d.innerHTML = slideHTML(s);
-    if (s.bg) {
-      const op = (s.veil != null) ? s.veil : (s.white ? .52 : .6);   // 0..1, makin kecil makin terlihat gambarnya
-      const veil = s.white
-        ? `linear-gradient(rgba(31,39,27,${op}), rgba(31,39,27,${op}))`
-        : `linear-gradient(rgba(249,246,238,${op}), rgba(249,246,238,${op}))`;
+    const op = (s.veil != null) ? s.veil : (s.white ? .52 : .6);   // 0..1, makin kecil makin terlihat gambar/video
+    const veil = s.white
+      ? `linear-gradient(rgba(31,39,27,${op}), rgba(31,39,27,${op}))`
+      : `linear-gradient(rgba(249,246,238,${op}), rgba(249,246,238,${op}))`;
+    if (s.video) {
+      const wrap = document.createElement("div"); wrap.className = "bg-video-wrap";
+      const v = document.createElement("video");
+      v.muted = true; v.loop = true; v.autoplay = true; v.playsInline = true;
+      v.setAttribute("muted", ""); v.setAttribute("playsinline", ""); // wajib utk autoplay iOS
+      v.preload = "metadata"; v.src = s.video;
+      const ve = document.createElement("div"); ve.className = "bg-video-veil";
+      ve.style.background = veil;
+      wrap.appendChild(v); wrap.appendChild(ve);
+      v.addEventListener("error", () => { wrap.remove(); if (s.bg) d.style.background = `${veil}, url('${s.bg}') center center / cover no-repeat`; }); // video gagal -> foto bila ada
+      d.prepend(wrap);
+      d._vid = v;  // disimpan utk play/pause saat slide tampil
+      if (!s.bare) d.classList.add("i-delay-text");  // bunga mekar dulu, teks overlay muncul menyusul (jika ada)
+      if (s.white) d.classList.add("i-white");
+    } else if (s.bg) {
       d.style.background = `${veil}, url('${s.bg}') center center / cover no-repeat`;
       if (s.white) d.classList.add("i-white");
     }
@@ -1488,7 +1523,10 @@ loadWishes();
 
   let i = -1, started = false;
   function go(n){
-    els.forEach((e,k) => e.classList.toggle("show", k === n));
+    els.forEach((e,k) => {
+      e.classList.toggle("show", k === n);
+      if (e._vid) { if (k === n) { try { e._vid.currentTime = 0; } catch(_){} e._vid.play().catch(()=>{}); } else e._vid.pause(); }
+    });
     dots.forEach((b,k) => b.classList.toggle("on", k === n));
     i = n;
     setTimeout(() => { if (started) go((i + 1) % els.length); }, holdFor(slides[n]));
