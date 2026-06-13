@@ -74,19 +74,6 @@
   }
   section > * { position: relative; z-index: 2; width: 100%; }
 
-  /* hiasan bunga di keempat sudut tiap frame (rumpun bawah + atas) */
-  section::before, section::after {
-    content: ''; position: absolute; top: 0; bottom: 0; width: 250px;
-    pointer-events: none; z-index: 1; opacity: .95;
-    background:
-      url('bloom.svg?v=2') no-repeat left bottom / 250px auto,
-      url('bloom-top.svg?v=2') no-repeat left top / 188px auto;
-  }
-  section::before { left: -40px; }
-  section::after  { right: -40px; transform: scaleX(-1); }
-  /* di bagian gelap, bunga sedikit diredam */
-  #cover::before, #cover::after, #countdown::before, #countdown::after,
-  #rsvp::before, #rsvp::after, #closing::before, #closing::after { opacity: .72; }
 
   .script { font-family: var(--script); color: var(--gold); line-height: 1.1; }
   .serif  { font-family: var(--serif); }
@@ -159,8 +146,6 @@
       linear-gradient(rgba(44,56,41,.22), rgba(44,56,41,.22)),
       url('bg/bgcover.jpeg') center / cover no-repeat;
   }
-  /* background baru sudah punya ornamen border & bunga sendiri -> hiasan bawaan dimatikan */
-  #cover::before, #cover::after { content: none; }
   /* bingkai ornamen di cover */
   #cover .frame {
     position: absolute; inset: 22px; border: 1px solid rgba(214,191,149,.5);
