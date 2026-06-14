@@ -1102,7 +1102,7 @@ const CONFIG = {
 
   // --- Melodi kotak musik pendek saat "Buka Undangan" ditekan (sebelum musik utama).
   //     Kosongkan "" untuk melewati dan langsung memutar musik utama. ---
-  openJingle: "musik-buka.mp3",
+  openJingle: "",
 
   // --- Scroll otomatis pelan setelah undangan dibuka (berhenti saat tamu menyentuh layar). ---
   autoScroll: true,
@@ -1129,6 +1129,7 @@ const CONFIG = {
   //     Tukar src antar-segmen sesuka hati untuk mengganti background.
   backgrounds: {
     // cover: pakai bg/bg.jpeg langsung lewat CSS (#cover) dengan veil gelap; video mempelai tetap di bingkai foto
+    opening:   { src: "bg/bgclosing.jpeg", veil: .3 },
     couple:    { src: "bg/bg.jpeg", veil: .4 },
     couple2:   { src: "bg/bg.jpeg", veil: .4 },
     countdown: { src: "bg/bg.jpeg", veil: .4 },
