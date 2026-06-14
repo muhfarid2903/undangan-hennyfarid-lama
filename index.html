@@ -235,13 +235,14 @@
   /* ---------- COUNTDOWN ---------- */
   #countdown { background: linear-gradient(160deg, var(--deep2), var(--deep)); color: #fff; }
   #countdown .eyebrow { color: rgba(255,255,255,.85); }
-  .cd-grid { display: flex; justify-content: center; gap: 12px; margin-top: 24px; }
+  .cd-grid { display: flex; justify-content: center; gap: 8px; margin-top: 24px; }
   .cd-box {
+    flex: 1 1 0; min-width: 0;
     background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.25);
-    border-radius: 14px; padding: 16px 10px; min-width: 68px; backdrop-filter: blur(4px);
+    border-radius: 14px; padding: 16px 4px; backdrop-filter: blur(4px);
   }
-  .cd-box .num { font-family: var(--serif); font-size: 34px; line-height: 1; }
-  .cd-box .lbl { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; opacity: .85; margin-top: 6px; }
+  .cd-box .num { font-family: var(--serif); font-size: clamp(24px, 7.5vw, 34px); line-height: 1; }
+  .cd-box .lbl { font-size: clamp(9px, 2.6vw, 11px); letter-spacing: 1px; text-transform: uppercase; opacity: .85; margin-top: 6px; white-space: nowrap; }
   .btn-cal {
     margin-top: 30px; display: inline-block; border: 1px solid rgba(255,255,255,.6);
     color: #fff; text-decoration: none; padding: 11px 24px; border-radius: 40px;
