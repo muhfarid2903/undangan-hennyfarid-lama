@@ -1121,6 +1121,30 @@ const CONFIG = {
   // Jika dikosongkan "", RSVP hanya tersimpan di browser tamu (mode demo).
   sheetUrl: "https://script.google.com/macros/s/AKfycbyjXtZ9kaQFEMj0idXmUesU9fnOEALwWf6Uf9vCh9G4FNv0sYsViN72TwMOeG-ki8y5IQ/exec",
 
+  // --- Ucapan contoh (selalu tampil di atas ucapan asli dari tamu). Kosongkan [] untuk meniadakan. ---
+  seedWishes: [
+    { name: "Dr. Bambang Wijaya & Keluarga", attend: "Hadir",
+      msg: "Selamat menempuh hidup baru kepada Henny & Farid. Semoga Allah SWT senantiasa melimpahkan keberkahan dan membimbing setiap langkah menuju keluarga yang sakinah, mawaddah, wa rahmah." },
+    { name: "Ustadz Hidayatullah", attend: "Hadir",
+      msg: "Barakallahu laka wa baraka 'alaika wa jama'a bainakumaa fii khair. Semoga pernikahan ini menjadi ibadah terpanjang yang dipenuhi cinta dan pahala." },
+    { name: "Rizky (si paling telat datang)", attend: "Hadir",
+      msg: "Akhirnya nikah juga! Pesan dari yang sudah duluan: kunci rumah tangga itu dua — sabar dan pura-pura nggak dengar. Jangan lupa traktir ya! 😄" },
+    { name: "Tante Sari & Om Joko", attend: "Hadir",
+      msg: "Pernikahan bukan soal menemukan orang yang sempurna, tapi belajar melihat yang tak sempurna dengan cara yang sempurna. Selamat menua bersama!" },
+    { name: "Dewi Lestari", attend: "Hadir",
+      msg: "Hennyy! Ikut bahagia banget lihat kamu sampai di hari ini. Semoga langgeng sampai kakek-nenek, selalu saling menguatkan. Peluk hangat! 🤍" },
+    { name: "Segenap Rekan PT Sentosa Abadi", attend: "Tidak Hadir",
+      msg: "Dengan hormat, kami mengucapkan selamat atas pernikahan Saudara Farid. Mohon maaf belum dapat hadir; semoga rumah tangga membawa kebahagiaan dan kelancaran dalam setiap urusan." },
+    { name: "Andi & Geng Futsal", attend: "Hadir",
+      msg: "Selamat bro! Mulai sekarang izin main futsal wajib ACC istri dulu ya. Bahagia selalu, jangan gentar sama komando baru di rumah! ⚽😆" },
+    { name: "Nenek Aminah", attend: "Tidak Hadir",
+      msg: "Cucuku sayang, doa Nenek selalu menyertai. Semoga rumah tanggamu dipenuhi cinta, kesabaran, dan rezeki yang halal. Jaga selalu satu sama lain." },
+    { name: "Pak Sutrisno (Guru SMA)", attend: "Hadir",
+      msg: "Cinta itu seperti menanam pohon: disiram kesetiaan, dipupuk pengertian, dan diberi waktu untuk tumbuh. Selamat berkebun seumur hidup berdua." },
+    { name: "Maya & Dito", attend: "Hadir",
+      msg: "Selamat menempuh hidup baru! Ingat kalimat ajaib rumah tangga: \"Iya, kamu benar.\" Semoga selalu rukun, romantis, dan dilimpahi kebahagiaan. ❤️" },
+  ],
+
   // --- Background per segmen (foto penuh + veil agar teks terbaca) ---
   //     src     : nama file gambar (di folder bg/). Kosongkan/hapus baris untuk pakai tampilan default.
   //     video   : nama file video .mp4 (opsional) -> latar bergerak; foto src tetap jadi cadangan.
@@ -1360,7 +1384,9 @@ const SHEET = (CONFIG.sheetUrl || "").indexOf("http") === 0 ? CONFIG.sheetUrl : 
 function esc(s){ return String(s||"").replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 function localList(){ try { return JSON.parse(localStorage.getItem(STORE)) || []; } catch(e){ return []; } }
 function renderWishes(list) {
-  if (!list || !list.length) list = [{ name:"Keluarga Besar", attend:"Hadir", msg:"Selamat menempuh hidup baru, semoga menjadi keluarga sakinah, mawaddah, warahmah." }];
+  const seed = Array.isArray(CONFIG.seedWishes) ? CONFIG.seedWishes : [];
+  list = seed.concat(Array.isArray(list) ? list : []);
+  if (!list.length) list = [{ name:"Keluarga Besar", attend:"Hadir", msg:"Selamat menempuh hidup baru, semoga menjadi keluarga sakinah, mawaddah, warahmah." }];
   $("#wishes").innerHTML = list.map(w => `
     <div class="wish">
       <div class="w-name">${esc(w.name)}<span class="badge">${esc(w.attend)}</span></div>
