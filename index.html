@@ -376,6 +376,7 @@
   .gal-grid { column-count: 2; column-gap: 10px; margin-top: 22px; }
   .gal-grid img {
     width: 100%; height: auto; display: block; border-radius: 12px; cursor: pointer;
+    object-fit: cover;            /* tinggi diatur via aspect-ratio acak per foto */
     margin: 0 0 10px; break-inside: avoid; -webkit-column-break-inside: avoid;
     box-shadow: 0 8px 22px rgba(74,58,82,.16);
     transition: transform .35s ease, box-shadow .35s ease;
@@ -1346,9 +1347,15 @@ $("#timeline").innerHTML = CONFIG.story.map(s =>
   function open(i){ show(i); box.classList.add("show"); document.documentElement.classList.add("modal-open"); }
   function close(){ box.classList.remove("show"); document.documentElement.classList.remove("modal-open"); }
 
+  // Variasi tinggi foto agar tidak monoton: tiap foto diberi aspect-ratio acak
+  // dari kumpulan rasio terkurasi. Pola diatur agar dua foto sangat tinggi tak
+  // berdampingan (selang-seling tinggi/sedang/pendek) -> tampak berirama & berseni.
+  const ratios = ["3/4.6", "3/4", "1/1", "3/4.2", "4/5", "3/3.7", "5/6"];  // h>w (potret) bervariasi
+  const order = [0, 4, 2, 6, 1, 5, 3];  // urutan rasio yang sengaja berselang agar tinggi-pendek bergantian
   pics.forEach((src, i) => {
     const im = document.createElement("img");
     im.src = src; im.loading = "lazy"; im.alt = "Galeri " + (i+1);
+    im.style.aspectRatio = ratios[order[i % order.length]];
     // muncul bergantian (stagger 0.12s) sambil membesar; kelas dilepas usai animasi
     im.classList.add("reveal-zoom");
     im.style.transitionDelay = (i * 0.12) + "s";
