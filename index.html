@@ -372,14 +372,15 @@
   /* galeri: warna ivory polos (tanpa foto taman) agar foto-foto jadi fokus */
   #gallery { background: #f3e9e2; }
   #gallery .sec-title { color: #8a3b42; }
-  .gal-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 22px; }
+  /* masonry: 2 kolom, tinggi foto mengikuti aslinya (campur dinamis), tetap dalam lebar kartu */
+  .gal-grid { column-count: 2; column-gap: 10px; margin-top: 22px; }
   .gal-grid img {
-    width: 100%; aspect-ratio: 4/5; object-fit: cover; border-radius: 12px; cursor: pointer;
+    width: 100%; height: auto; display: block; border-radius: 12px; cursor: pointer;
+    margin: 0 0 10px; break-inside: avoid; -webkit-column-break-inside: avoid;
     box-shadow: 0 8px 22px rgba(74,58,82,.16);
     transition: transform .35s ease, box-shadow .35s ease;
   }
   .gal-grid img:hover { transform: scale(1.03); box-shadow: 0 12px 30px rgba(74,58,82,.26); }
-  .gal-grid img.wide { grid-column: span 2; aspect-ratio: 16/10; }
   /* saat reveal, pakai transisi .9s (kelas dilepas setelah selesai agar hover kembali gesit) */
   .gal-grid img.reveal-zoom { transition: opacity .9s cubic-bezier(.2,.7,.2,1), transform .9s cubic-bezier(.2,.7,.2,1); }
 
@@ -1355,8 +1356,6 @@ $("#timeline").innerHTML = CONFIG.story.map(s =>
       im.classList.remove("reveal-zoom", "show");
       im.style.transitionDelay = "";
     }, { once: true });
-    // foto pertama melebar; bila sisa foto ganjil, foto terakhir ikut melebar agar grid rapi
-    if (i === 0 || (pics.length % 2 === 0 && i === pics.length - 1)) im.classList.add("wide");
     im.addEventListener("click", () => open(i));
     grid.appendChild(im);
   });
