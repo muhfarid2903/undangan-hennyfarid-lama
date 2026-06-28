@@ -970,14 +970,8 @@
     </section>
 
     <!-- ================= CLOSING ================= -->
-    <section id="closing">
-      <h2 class="sec-title reveal">Terima Kasih</h2>
-      <div class="divider reveal"></div>
-      <p class="reveal">Merupakan suatu kebahagiaan dan kehormatan bagi kami apabila Bapak/Ibu/Saudara/i berkenan hadir dan memberikan doa restu.</p>
-      <div class="names reveal" id="closing-names">Rangga &amp; Cinta</div>
-      <p class="reveal">Wassalamu'alaikum Warahmatullahi Wabarakatuh</p>
-      <div class="credit reveal">Dibuat dengan ❤</div>
-    </section>
+    <!-- penutup: teks sudah ada di dalam video latar, jadi tanpa kartu/teks -->
+    <section id="closing"></section>
 
   </div><!-- /.content -->
 
@@ -1116,6 +1110,12 @@ const CONFIG = {
     "galeri18.jpg",
     "galeri19.jpg",
     "galeri20.jpg",
+    "galeri21.jpg",
+    "galeri22.jpg",
+    "galeri23.jpg",
+    "galeri24.jpg",
+    "galeri25.jpg",
+    "galeri26.jpg",
   ],
 
   // --- Amplop digital / rekening ---
@@ -1181,16 +1181,16 @@ const CONFIG = {
   //     Tukar src antar-segmen sesuka hati untuk mengganti background.
   backgrounds: {
     // cover: pakai bg/bg.jpeg langsung lewat CSS (#cover) dengan veil gelap; video mempelai tetap di bingkai foto
-    opening:   { src: "bg/gift.jpeg", veil: .3 },
-    couple:    { src: "bg/bg.jpeg", veil: .4 },
-    couple2:   { src: "bg/bg.jpeg", veil: .4 },
-    countdown: { src: "bg/bg.jpeg", veil: .4 },
-    events:    { src: "bg/bg.jpeg", veil: .4 },
-    story:     { src: "bg/gift.jpeg", veil: .3 },
-    rsvp:      { src: "bg/gift.jpeg", veil: .3 },
-    checkin:   { src: "bg/bg.jpeg", veil: .4 },
-    gift:      { src: "bg/gift.jpeg", veil: .3 },
-    closing:   { src: "bg/bgclosing.jpeg", veil: .3 },
+    opening:   { src: "bg/gift.jpeg", video: "bg/background.mp4", loop: false, veil: .3 },
+    couple:    { src: "bg/bg.jpeg",   video: "bg/background.mp4", loop: false, veil: .4 },
+    couple2:   { src: "bg/bg.jpeg",   video: "bg/background.mp4", loop: false, veil: .4 },
+    countdown: { src: "bg/bg.jpeg",   video: "bg/background.mp4", loop: false, veil: .4 },
+    events:    { src: "bg/bg.jpeg",   video: "bg/background.mp4", loop: false, veil: .4 },
+    story:     { src: "bg/gift.jpeg", video: "bg/background.mp4", loop: false, veil: .3 },
+    rsvp:      { src: "bg/gift.jpeg", video: "bg/background.mp4", loop: false, veil: .3 },
+    checkin:   { src: "bg/bg.jpeg",   video: "bg/background.mp4", loop: false, veil: .4 },
+    gift:      { src: "bg/gift.jpeg", video: "bg/background.mp4", loop: false, veil: .3 },
+    closing:   { src: "bg/bgclosing.jpeg", video: "bg/penutup.mp4", loop: false, veil: .3 },
   },
 };
 
@@ -1214,7 +1214,7 @@ if (guest) {
 const coupleNames = CONFIG.bride.nick + " & " + CONFIG.groom.nick;   // mempelai wanita disebut dulu
 $("#cover-names").dataset.full = coupleNames;   // diketik nanti via JS
 $("#cover-names").textContent = "";
-$("#closing-names").textContent = coupleNames;
+{ const cn = $("#closing-names"); if (cn) cn.textContent = coupleNames; }
 document.title = "The Wedding of " + coupleNames;
 const mainDate = new Date(CONFIG.mainDate);
 $("#loader-names").textContent = coupleNames;
@@ -1569,8 +1569,9 @@ loadWishes();
     if (cfg.video) {
       const wrap = document.createElement("div"); wrap.className = "bg-video-wrap";
       const v = document.createElement("video");
-      v.muted = true; v.loop = true; v.autoplay = true; v.playsInline = true;
+      v.muted = true; v.loop = (cfg.loop !== false); v.autoplay = true; v.playsInline = true;
       v.setAttribute("muted", ""); v.setAttribute("playsinline", ""); // wajib utk autoplay iOS
+      if (v.loop) v.setAttribute("loop", "");
       v.preload = "metadata"; v.src = cfg.video;
       const ve = document.createElement("div"); ve.className = "bg-video-veil";
       ve.style.background = veil;
@@ -1587,7 +1588,7 @@ loadWishes();
 
 // ---- Kartu kaca pembungkus konten segmen berteks (di atas background foto) ----
 (function(){
-  ["opening","couple","couple2","countdown","events","story","rsvp","checkin","gift","closing"]
+  ["opening","couple","couple2","countdown","events","story","rsvp","checkin","gift"]
   .forEach(id => {
     const sec = document.getElementById(id); if (!sec) return;
     const card = document.createElement("div"); card.className = "sec-card";
