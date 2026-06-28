@@ -1244,10 +1244,21 @@ function revealCover(){
     }
   }, 30);
 }
-// Tunggu SELURUH aset (foto, video, musik) selesai dimuat agar undangan tampil
-// berurutan & mulus saat di-scroll — tidak ada foto/segmen yang "pop-in" menyusul.
-window.addEventListener("load", revealCover);
-setTimeout(revealCover, 6000); // fallback bila ada aset yang lambat termuat
+// Loader selesai begitu video INTRO siap diputar mulus (canplaythrough) — bukan
+// menunggu seluruh aset. Intro berputar ~20 dtk, cukup waktu bagi segmen lain
+// memuat di belakang layar sehingga tetap tampil berurutan saat di-scroll.
+(function(){
+  const introVids = ["intro-1-2.mp4", "intro-5-6.mp4"];
+  let left = introVids.length;
+  const done = () => { if (--left <= 0) revealCover(); };
+  introVids.forEach(src => {
+    const v = document.createElement("video");
+    v.muted = true; v.preload = "auto"; v.src = src;
+    v.addEventListener("canplaythrough", done, { once: true });
+    v.addEventListener("error", done, { once: true });   // gagal -> jangan ganjal loader
+  });
+})();
+setTimeout(revealCover, 5000); // batas atas: maksimal 5 detik
 
 // ---- Opening ----
 $("#opening-ayat").textContent = CONFIG.ayat;
