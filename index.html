@@ -860,26 +860,28 @@
 
   /* kartu ucapan di dalam popup */
   .wishes { text-align: left; }
-  /* gaya komentar sosmed: avatar inisial + nama + pesan + baris suka/waktu */
-  .wish {
-    display: flex; gap: 11px; background: #fff; border: 1px solid var(--line);
-    border-radius: 14px; padding: 12px 14px; margin-bottom: 10px;
-  }
+  /* feed gaya komentar Instagram: rata tanpa kotak, avatar kecil, nama tebal menyatu dgn teks, hati di kanan */
+  .wishes { text-align: left; }
+  .wish { display: flex; align-items: flex-start; gap: 11px; padding: 8px 0; }
   .wish .w-ava {
-    flex: 0 0 40px; width: 40px; height: 40px; border-radius: 50%;
+    flex: 0 0 34px; width: 34px; height: 34px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    color: #fff; font-family: var(--script); font-size: 23px; line-height: 1; padding-top: 3px;
+    color: #fff; font-family: var(--script); font-size: 19px; line-height: 1; padding-top: 2px;
   }
   .wish .w-body { flex: 1 1 auto; min-width: 0; }
-  .wish .w-head { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-  .wish .w-name { font-family: var(--serif); font-weight: 600; font-size: 15px; color: var(--ink); }
-  .wish .w-msg { font-size: 15px; margin-top: 3px; color: var(--ink); line-height: 1.6; overflow-wrap: anywhere; }
-  .wish .w-foot { display: flex; align-items: center; gap: 7px; margin-top: 8px; font-size: 12px; color: var(--muted); }
-  .wish .w-like { background: none; border: none; padding: 0; cursor: pointer; color: var(--muted); font-size: 12px; font-family: var(--sans); display: inline-flex; align-items: center; gap: 4px; transition: color .2s, transform .15s; }
-  .wish .w-like:active { transform: scale(.9); }
-  .wish .w-like .w-heart { font-size: 13px; }
-  .wish .w-like.liked { color: #c0392b; }
-  .wish .w-time, .wish .w-dot { color: var(--muted); }
+  .wish .w-text { font-size: 14.5px; line-height: 1.5; color: var(--ink); overflow-wrap: anywhere; }
+  .wish .w-name { font-weight: 700; margin-right: 5px; color: var(--ink); }
+  .wish .w-foot { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 6px; font-size: 12px; color: var(--muted); }
+  .wish .w-foot .w-likes, .wish .w-foot .w-reply { font-weight: 600; }
+  .wish .w-att { color: var(--gold); font-weight: 600; }
+  .wish .w-like {
+    flex: 0 0 auto; align-self: flex-start; margin-top: 3px;
+    background: none; border: none; padding: 4px; cursor: pointer; color: var(--muted);
+    transition: transform .15s ease, color .2s ease;
+  }
+  .wish .w-like:active { transform: scale(.8); }
+  .wish .w-like.liked { color: #e0245e; }
+  .wish .w-like .w-heart { font-size: 16px; line-height: 1; }
   .badge {
     font-size: 10px; padding: 2px 8px; border-radius: 20px; margin-left: 6px;
     background: var(--bg-deep); color: var(--gold); border: 1px solid var(--gold-soft);
@@ -1666,6 +1668,12 @@ function avaColor(name){
   for (let i=0;i<s.length;i++) h = (h*31 + s.charCodeAt(i)) >>> 0;
   return P[h % P.length];
 }
+// jumlah "suka" semu yang konsisten per ucapan (biar terasa ramai ala sosmed)
+function likeCount(w){
+  let h = 0; const s = String(w.name||"") + String(w.msg||"");
+  for (let i=0;i<s.length;i++) h = (h*31 + s.charCodeAt(i)) >>> 0;
+  return 1 + (h % 28);
+}
 // waktu relatif ala sosmed (hanya utk ucapan asli yang punya timestamp)
 function relTime(t){
   if (!t) return "";
@@ -1687,14 +1695,15 @@ function renderWishes(list) {
     const nm = esc(w.name);
     const ini = esc((String(w.name||"?").trim()[0] || "?").toUpperCase());
     const time = relTime(w.t);
+    const lc = likeCount(w);
     return `
     <div class="wish">
       <div class="w-ava" style="background:${avaColor(w.name)}">${ini}</div>
       <div class="w-body">
-        <div class="w-head"><span class="w-name">${nm}</span>${w.attend ? `<span class="badge">${esc(w.attend)}</span>` : ""}</div>
-        <div class="w-msg">${esc(w.msg||"")}</div>
-        <div class="w-foot"><button type="button" class="w-like" aria-label="Suka"><span class="w-heart">♡</span> Suka</button>${time ? `<span class="w-dot">·</span><span class="w-time">${time}</span>` : ""}</div>
+        <div class="w-text"><span class="w-name">${nm}</span>${esc(w.msg||"")}</div>
+        <div class="w-foot">${time ? `<span class="w-time">${time}</span>` : ""}${w.attend ? `<span class="w-att">${esc(w.attend)}</span>` : ""}<span class="w-likes" data-base="${lc}">${lc} suka</span><span class="w-reply">Balas</span></div>
       </div>
+      <button type="button" class="w-like" aria-label="Suka"><span class="w-heart">♡</span></button>
     </div>`;
   }).join("");
   $("#btn-wishes").textContent = `💌 Lihat Ucapan & Doa (${list.length})`;
@@ -1702,8 +1711,10 @@ function renderWishes(list) {
 // tombol love: isi/kosong saat ditekan (efek menyenangkan, lokal di perangkat)
 $("#wishes").addEventListener("click", (e) => {
   const b = e.target.closest(".w-like"); if (!b) return;
-  b.classList.toggle("liked");
-  const h = b.querySelector(".w-heart"); if (h) h.textContent = b.classList.contains("liked") ? "❤" : "♡";
+  const liked = b.classList.toggle("liked");
+  const h = b.querySelector(".w-heart"); if (h) h.textContent = liked ? "❤" : "♡";
+  const wish = b.closest(".wish"), lk = wish && wish.querySelector(".w-likes");
+  if (lk) { const base = +lk.dataset.base || 0; lk.textContent = (base + (liked ? 1 : 0)) + " suka"; }
 });
 function loadWishes() {
   if (SHEET) fetch(SHEET).then(r => r.json()).then(renderWishes).catch(() => renderWishes(localList()));
