@@ -22,6 +22,34 @@
 <meta name="twitter:title" content="Henny &amp; Farid — Undangan Pernikahan" />
 <meta name="twitter:description" content="Kami mengundang Bapak/Ibu/Saudara/i untuk hadir di hari bahagia kami — Kamis, 16 Juli 2026." />
 <meta name="twitter:image" content="https://hennyfarid.balanglompo.com/cover.jpg" />
+<link rel="canonical" href="https://hennyfarid.balanglompo.com/" />
+
+<!-- Structured data: info acara agar lebih kaya bila terindeks mesin pencari -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Event",
+  "name": "Pernikahan Henny & Farid",
+  "startDate": "2026-07-16T10:00:00+08:00",
+  "eventStatus": "https://schema.org/EventScheduled",
+  "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+  "image": "https://hennyfarid.balanglompo.com/cover.jpg",
+  "description": "Undangan pernikahan Henny & Farid — Kamis, 16 Juli 2026 di Gedung Dewakkang, Pangkep.",
+  "location": {
+    "@type": "Place",
+    "name": "Gedung Dewakkang",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "Samalewa, Kec. Bungoro",
+      "addressLocality": "Pangkep",
+      "addressRegion": "Sulawesi Selatan",
+      "postalCode": "90617",
+      "addressCountry": "ID"
+    }
+  },
+  "organizer": { "@type": "Person", "name": "Henny & Farid" }
+}
+</script>
 
 <!-- ============================================================
      CARA EDIT: ganti semua isi pada blok CONFIG (di <script> bawah).
@@ -59,6 +87,10 @@
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  /* aksesibilitas: outline emas terlihat saat navigasi keyboard (tidak muncul saat klik mouse) */
+  a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+    outline: 2px solid var(--gold); outline-offset: 2px; border-radius: 4px;
+  }
   /* tanpa scroll-snap agar scroll mengalir mulus (snap membuat viewport tertarik-tarik ke batas frame) */
   html { scroll-behavior: smooth; }
   body {
@@ -1072,14 +1104,14 @@
     <a data-target="gift"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12.5V21H4v-8.5M2.5 7.5h19v5h-19zM12 21V7.5"/><path d="M12 7.5H7.8a2.4 2.4 0 1 1 0-4.8C11 2.7 12 7.5 12 7.5ZM12 7.5h4.2a2.4 2.4 0 1 0 0-4.8C13 2.7 12 7.5 12 7.5Z"/></svg></span><span>Hadiah</span></a>
   </nav>
 
-  <button class="music-btn" id="music-btn" title="Musik"><span class="ico">♪</span></button>
+  <button class="music-btn" id="music-btn" title="Musik" aria-label="Putar atau jeda musik"><span class="ico">♪</span></button>
   <audio id="audio" loop></audio>
 </div>
 
 <!-- ================= POPUP: UCAPAN & DOA ================= -->
 <div class="popup" id="popup-wishes">
   <div class="popup-card">
-    <button class="popup-close" title="Tutup">✕</button>
+    <button class="popup-close" title="Tutup" aria-label="Tutup">✕</button>
     <div class="popup-title">Doa &amp; Ucapan</div>
     <div class="popup-sub">Untaian doa restu dari kerabat &amp; sahabat</div>
     <div class="popup-body"><div class="wishes" id="wishes"></div></div>
@@ -1089,7 +1121,7 @@
 <!-- ================= POPUP: AMPLOP DIGITAL ================= -->
 <div class="popup" id="popup-gift">
   <div class="popup-card">
-    <button class="popup-close" title="Tutup">✕</button>
+    <button class="popup-close" title="Tutup" aria-label="Tutup">✕</button>
     <div class="popup-title">Wedding Gift</div>
     <div class="popup-sub">Pilih rekening, lalu salin nomornya</div>
     <div class="popup-body"><div id="gift-list"></div></div>
@@ -1097,10 +1129,10 @@
 </div>
 
 <div class="lightbox" id="lightbox">
-  <button class="lb-btn lb-close" id="lb-close" title="Tutup">✕</button>
-  <button class="lb-btn lb-prev" id="lb-prev" title="Sebelumnya">‹</button>
+  <button class="lb-btn lb-close" id="lb-close" title="Tutup" aria-label="Tutup">✕</button>
+  <button class="lb-btn lb-prev" id="lb-prev" title="Sebelumnya" aria-label="Foto sebelumnya">‹</button>
   <img id="lightbox-img" alt="" />
-  <button class="lb-btn lb-next" id="lb-next" title="Berikutnya">›</button>
+  <button class="lb-btn lb-next" id="lb-next" title="Berikutnya" aria-label="Foto berikutnya">›</button>
   <div class="lb-count" id="lb-count"></div>
 </div>
 
