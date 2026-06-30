@@ -1265,14 +1265,15 @@ function setLoaderPct(v){
   $("#loader-fill").style.width = loaderPct + "%";
 }
 const loaderTrickle = setInterval(() => {
-  if (loaderPct < 90) setLoaderPct(loaderPct + (loaderPct < 60 ? 3 + Math.random() * 4 : 1));
-}, 90);
+  if (loaderPct < 92) setLoaderPct(loaderPct + (loaderPct < 70 ? 5 + Math.random() * 5 : 2));
+}, 80);
 function revealCover(){
   if (loaderDone) return;
   loaderDone = true;
   clearInterval(loaderTrickle);
+  startSequentialPreload();   // halaman berikutnya dimuat berurutan di belakang layar
   const sprint = setInterval(() => {
-    setLoaderPct(loaderPct + 4);
+    setLoaderPct(loaderPct + 8);
     if (loaderPct >= 100) {
       clearInterval(sprint);
       document.body.classList.add("loaded");
@@ -1282,29 +1283,49 @@ function revealCover(){
     }
   }, 30);
 }
-// Loader selesai begitu SEMUA aset cover + intro siap (foto termuat & video siap
-// diputar mulus) — bukan menunggu seluruh halaman. Intro berputar ~20 dtk, cukup
-// waktu bagi segmen lain memuat di belakang layar agar tetap tampil berurutan.
+// Loader selesai begitu HALAMAN PERTAMA (cover) siap — cukup foto cover termuat.
+// Video latar cover punya poster (cover.jpg) sehingga tak perlu diganjal; ia
+// menyusul streaming. Aset halaman berikutnya dimuat berurutan (preloadInOrder).
 (function(){
-  const imgs = ["cover.jpg"];                 // foto cover
-  const vids = ["bg/cover-video.mp4"];          // video latar cover
-  (CONFIG.intro || []).forEach(s => { if (s.video) vids.push(s.video); if (s.src) imgs.push(s.src); });
-  let left = imgs.length + vids.length;
-  const done = () => { if (--left <= 0) revealCover(); };
-  if (left === 0) { revealCover(); return; }
-  imgs.forEach(src => {
-    let fired = false; const one = () => { if (!fired) { fired = true; done(); } };
-    const im = new Image(); im.onload = one; im.onerror = one; im.src = src;
-    if (im.complete) one();   // sudah di cache
-  });
-  vids.forEach(src => {
-    const v = document.createElement("video");
-    v.muted = true; v.preload = "auto"; v.src = src;
-    v.addEventListener("canplaythrough", done, { once: true });
-    v.addEventListener("error", done, { once: true });   // gagal -> jangan ganjal loader
-  });
+  let fired = false; const one = () => { if (!fired) { fired = true; revealCover(); } };
+  const im = new Image(); im.onload = one; im.onerror = one; im.src = "cover.jpg";
+  if (im.complete) one();   // sudah di cache
 })();
-setTimeout(revealCover, 5000); // batas atas: maksimal 5 detik
+setTimeout(revealCover, 3500); // batas atas: maksimal 3,5 detik (hanya menunggu cover)
+
+// ---- Preload BERURUTAN: muat aset halaman demi halaman sesuai alur undangan ----
+// Satu aset pada satu waktu agar koneksi lambat tidak rebutan bandwidth, sehingga
+// undangan "matang" dari atas ke bawah (cover -> intro -> opening -> dst).
+function preloadInOrder(list){
+  const seen = new Set(); let k = 0;
+  (function next(){
+    while (k < list.length && seen.has(list[k])) k++;
+    if (k >= list.length) return;
+    const src = list[k++]; seen.add(src);
+    if (/\.mp4(\?|$)/i.test(src)) {
+      const v = document.createElement("video");
+      v.muted = true; v.preload = "auto"; v.src = src;
+      let moved = false; const go = () => { if (moved) return; moved = true; next(); };
+      v.addEventListener("canplaythrough", go, { once: true });
+      v.addEventListener("error", go, { once: true });
+      setTimeout(go, 6000);   // jangan menggantung bila video besar di koneksi lambat
+    } else {
+      const im = new Image(); im.onload = next; im.onerror = next; im.src = src;
+      if (im.complete) next();
+    }
+  })();
+}
+function startSequentialPreload(){
+  const list = ["bg/cover-video.mp4"];                               // sisa halaman 1 (cover)
+  (CONFIG.intro || []).forEach(s => { if (s.src) list.push(s.src); if (s.video) list.push(s.video); }); // intro
+  list.push("opening-ayat.jpg");                                     // opening
+  if (CONFIG.bride && CONFIG.bride.photo) list.push(CONFIG.bride.photo);
+  if (CONFIG.groom && CONFIG.groom.photo) list.push(CONFIG.groom.photo);
+  list.push("bg/segmen.jpeg", "bg/segmen-video.mp4");               // background bersama semua segmen
+  (CONFIG.gallery || []).slice(0, 6).forEach(g => list.push(g));    // beberapa foto galeri pertama
+  list.push("bg/penutup.mp4");                                       // closing
+  preloadInOrder(list);
+}
 
 // ---- Opening ----
 $("#opening-ayat").textContent = CONFIG.ayat;
