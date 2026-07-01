@@ -102,6 +102,54 @@ video intro custom, check-in yang benar-benar dipakai di venue.
 3. Video intro custom (mayoritas kompetitor statis).
 4. Performa jaringan lambat (setelah optimasi) — kompetitor banyak yang berat.
 
+### Fitur undangan kelas atas (Rp 1–10jt) & peta gap
+
+Kelas atas **bukan soal jumlah fitur** — secara jumlah fitur produk ini sudah hampir lengkap.
+Pembedanya tiga: **desain bespoke, pengalaman sinematik, dan level layanan.** Tamu yang membuka
+undangan kelas atas langsung merasa "dibuat khusus untuk pasangan ini", bukan template ganti nama.
+
+**Yang lazim di segmen atas:**
+1. **Desain & motion bespoke** — ilustrasi/karikatur pasangan oleh ilustrator, ilustrasi venue,
+   monogram pasangan dipakai konsisten (undangan, layar venue, souvenir), opening 3D
+   (amplop/gerbang terbuka), scrollytelling/parallax berlapis (GSAP/Lottie), ornamen digambar
+   sendiri, love story ditulis copywriter.
+2. **Personalisasi lanjut** — segmentasi tamu (keluarga lihat akad+resepsi, kolega hanya resepsi,
+   sahabat dapat after-party — satu link konten beda), kuota pax per undangan ("berlaku 2 orang",
+   RSVP tak bisa melebihi), e-ticket + nomor meja, multi-bahasa (ID/EN/Mandarin/Arab).
+3. **Amplop digital generasi baru** — **QRIS**: tamu scan langsung transfer dari e-wallet/m-banking
+   mana pun (tanpa salin rekening), form konfirmasi hadiah otomatis, rekap di dashboard,
+   gift registry (daftar kado yang bisa "diklaim" agar tidak dobel).
+4. **Media & hari-H** — video invitation sinematik 1–2 menit (dikirim via WA sebelum link),
+   live streaming terintegrasi + reminder, digital guestbook (tamu unggah foto + ucapan) +
+   photo wall real-time di layar venue, video wishes, filter AR IG/TikTok custom,
+   hybrid kartu cetak mewah ber-QR/NFC.
+5. **Manajemen & layanan** — dashboard klien real-time (buka/RSVP funnel/rekap hadiah, bukan
+   Sheet mentah), WA blast otomatis via WhatsApp Business API + reminder H-7/H-1 + terima kasih
+   H+1 otomatis, unlimited revisi, dedicated support, **pendampingan hari-H** (kru + alat
+   check-in datang ke venue). Di level layanan inilah harga sebenarnya dibayar — klien kelas
+   atas membayar untuk *tidak memikirkan apa pun*.
+
+**Peta gap produk saat ini:**
+
+| Fitur kelas atas | Status | Layak dibangun? |
+|---|---|---|
+| QRIS amplop + konfirmasi hadiah | Belum | **Ya, prioritas** — effort kecil, nilai jual besar |
+| Live streaming embed | Belum | **Ya** — teknis sepele (embed YouTube) |
+| Kuota pax + segmentasi tamu | Belum | Ya, untuk paket Eksklusif |
+| Dashboard klien | Setengah (`kelola-tamu.html`) | Ya, bertahap |
+| Digital guestbook / photo wall | Belum | Nanti — jual sebagai add-on |
+| Ilustrasi & motion bespoke | Belum | **Jangan dikerjakan sendiri** — mitra ilustrator/motion designer per proyek, masukkan ke harga |
+| WA blast API resmi | Manual (`wa.me`) | Hati-hati — biaya per pesan + aturan Meta; semi-otomatis dulu |
+| Seating/e-ticket penuh | QR check-in saja | Skip dulu — kompleks, pasar sempit |
+
+**Implikasi strategi:** QR check-in yang sudah ada justru fitur kelas atas — banyak platform
+menengah tidak punya. Posisi jual sekarang = **"fitur kelas atas dengan harga menengah"**.
+Untuk benar-benar masuk segmen Rp 1jt+, urutan paling masuk akal: QRIS + streaming embed +
+dashboard klien dulu (semuanya engineering), lalu kemitraan ilustrator untuk sisi bespoke —
+desain custom adalah satu-satunya yang tak bisa diotomasi, dan itulah dasar harga Rp 5–10jt
+studio kelas atas. (Rentang harga = kondisi pasar awal 2026; verifikasi ulang 3–5 kompetitor
+premium aktif sebelum menetapkan harga final.)
+
 ### Struktur harga disarankan
 
 | Paket | Harga | Isi |
