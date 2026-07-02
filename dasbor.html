@@ -79,6 +79,7 @@
 
   <div class="cards">
     <div class="stat"><div class="num" id="s-tamu">…</div><div class="lbl">Tamu Diundang</div></div>
+    <div class="stat"><div class="num" id="s-dibuka">…</div><div class="lbl">Sudah Dibuka</div></div>
     <div class="stat green"><div class="num" id="s-hadir">…</div><div class="lbl">Konfirmasi Hadir</div></div>
     <div class="stat red"><div class="num" id="s-tidak">…</div><div class="lbl">Tidak Hadir</div></div>
     <div class="stat"><div class="num" id="s-pax">…</div><div class="lbl">Estimasi Pax</div></div>
@@ -88,6 +89,8 @@
 
   <div class="card">
     <h2>Funnel Tamu (dari daftar undangan)</h2>
+    <div class="bar"><div class="top"><span>Sudah membuka undangan</span><b id="t-buka">—</b></div>
+      <div class="track"><div class="fill" id="f-buka"></div></div></div>
     <div class="bar"><div class="top"><span>Sudah RSVP</span><b id="t-rsvp">—</b></div>
       <div class="track"><div class="fill" id="f-rsvp"></div></div></div>
     <div class="bar"><div class="top"><span>Konfirmasi hadir</span><b id="t-hadir">—</b></div>
@@ -104,13 +107,14 @@
       <button class="chip" data-f="hadir">Hadir</button>
       <button class="chip" data-f="tidak">Tidak Hadir</button>
       <button class="chip" data-f="belum">Belum RSVP</button>
+      <button class="chip" data-f="belumbuka">Belum Dibuka</button>
       <button class="chip" data-f="checkin">Sudah Check-in</button>
     </div>
     <input class="search" id="search" placeholder="Cari nama tamu…" />
     <div class="tblwrap">
       <table id="tbl">
-        <thead><tr><th>#</th><th>Nama</th><th>RSVP</th><th>Pax</th><th>Check-in</th></tr></thead>
-        <tbody><tr><td colspan="5" class="muted">Memuat…</td></tr></tbody>
+        <thead><tr><th>#</th><th>Nama</th><th>Dibuka</th><th>RSVP</th><th>Pax</th><th>Check-in</th></tr></thead>
+        <tbody><tr><td colspan="6" class="muted">Memuat…</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -134,7 +138,7 @@
 
   <div class="note">
     Halaman ini untuk mempelai — jangan bagikan link-nya.
-    Data diperbarui otomatis setiap 30 detik dari Google Sheet (tab DaftarTamu, RSVP, CheckIn).
+    Data diperbarui otomatis setiap 30 detik dari Google Sheet (tab DaftarTamu, RSVP, CheckIn, Dibuka).
   </div>
 
 <script>
@@ -143,6 +147,7 @@
 
   const $ = s => document.querySelector(s);
   let guests = [], rsvpAll = [], rsvpMap = {}, checkinList = [], checkinSet = new Set();
+  let dibukaMap = new Map(), openMode = false;   // openMode = backend baru (endpoint rekap) aktif
   let filter = "semua";
 
   function esc(s){ return String(s||"").replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
@@ -164,6 +169,17 @@
 
   function loadAll(){
     $("#updated").textContent = "Memuat…";
+    // Coba endpoint rekap (backend baru): semua data dalam SATU panggilan,
+    // termasuk data "dibuka". Backend lama membalas type tak dikenal dengan
+    // daftar ucapan (array) -> jatuh ke mode lama (3 panggilan, tanpa "dibuka").
+    fetch(SHEET_URL + "?type=rekap").then(r => r.json())
+      .then(d => {
+        if (d && d.ok && Array.isArray(d.tamu)) applyData(d.tamu, d.rsvp, d.checkin, d.dibuka);
+        else loadLegacy();
+      })
+      .catch(loadLegacy);
+  }
+  function loadLegacy(){
     Promise.all([
       fetch(SHEET_URL + "?type=tamu").then(r => r.json()).catch(() => null),
       fetch(SHEET_URL).then(r => r.json()).catch(() => null),
@@ -172,20 +188,26 @@
       const gagal = !tamu && !rsvp && !ci;
       $("#err").style.display = gagal ? "block" : "none";
       if (gagal) { $("#updated").textContent = "Gagal memuat"; return; }
-
-      guests = (tamu && tamu.list) ? tamu.list : [];
-      rsvpAll = Array.isArray(rsvp) ? rsvp : [];
-      // Server mengirim terbaru dulu -> entri pertama per nama = RSVP TERAKHIR orang itu
-      // (tamu yang submit berulang tidak dihitung ganda).
-      rsvpMap = {};
-      rsvpAll.forEach(w => { const k = norm(w.name); if (k && !(k in rsvpMap)) rsvpMap[k] = w; });
-      checkinList = (ci && ci.list) ? ci.list : [];
-      checkinSet = new Set(checkinList.map(x => norm(x.name)));
-
-      render();
-      $("#updated").textContent = "Diperbarui " +
-        new Date().toLocaleTimeString("id-ID", { hour:"2-digit", minute:"2-digit", second:"2-digit" });
+      applyData((tamu && tamu.list) || [], Array.isArray(rsvp) ? rsvp : [], (ci && ci.list) || [], null);
     });
+  }
+  function applyData(tamu, rsvp, ci, dibuka){
+    $("#err").style.display = "none";
+    guests = tamu || [];
+    rsvpAll = rsvp || [];
+    // Server mengirim terbaru dulu -> entri pertama per nama = RSVP TERAKHIR orang itu
+    // (tamu yang submit berulang tidak dihitung ganda).
+    rsvpMap = {};
+    rsvpAll.forEach(w => { const k = norm(w.name); if (k && !(k in rsvpMap)) rsvpMap[k] = w; });
+    checkinList = ci || [];
+    checkinSet = new Set(checkinList.map(x => norm(x.name)));
+    openMode = Array.isArray(dibuka);
+    dibukaMap = new Map();
+    if (openMode) dibuka.forEach(x => dibukaMap.set(norm(x.name), x));
+
+    render();
+    $("#updated").textContent = "Diperbarui " +
+      new Date().toLocaleTimeString("id-ID", { hour:"2-digit", minute:"2-digit", second:"2-digit" });
   }
 
   function render(){
@@ -196,6 +218,7 @@
     const pax = hadir.reduce((a, w) => a + paxOf(w), 0);
     const ucapan = rsvpAll.filter(w => String(w.msg||"").trim()).length;
     $("#s-tamu").textContent = guests.length;
+    $("#s-dibuka").textContent = openMode ? dibukaMap.size : "—";
     $("#s-hadir").textContent = hadir.length;
     $("#s-tidak").textContent = tidak.length;
     $("#s-pax").textContent = pax;
@@ -210,13 +233,18 @@
     const nCi    = keys.filter(k => checkinSet.has(k)).length;
     const tot = guests.length;
     const pct = n => tot ? Math.round(n / tot * 100) : 0;
+    const nBuka = openMode ? keys.filter(k => dibukaMap.has(k)).length : 0;
+    $("#t-buka").textContent = openMode ? (nBuka + " / " + tot + " (" + pct(nBuka) + "%)") : "—";
+    $("#f-buka").style.width = (openMode ? pct(nBuka) : 0) + "%";
     $("#t-rsvp").textContent  = nRsvp  + " / " + tot + " (" + pct(nRsvp)  + "%)";
     $("#t-hadir").textContent = nHadir + " / " + tot + " (" + pct(nHadir) + "%)";
     $("#t-ci").textContent    = nCi    + " / " + tot + " (" + pct(nCi)    + "%)";
     $("#f-rsvp").style.width  = pct(nRsvp)  + "%";
     $("#f-hadir").style.width = pct(nHadir) + "%";
     $("#f-ci").style.width    = pct(nCi)    + "%";
-    $("#funnel-note").textContent = tot ? "" : "Daftar tamu masih kosong — tambahkan lewat halaman Kelola Daftar Tamu.";
+    $("#funnel-note").textContent = !openMode
+      ? 'Baris "membuka undangan" aktif setelah Apps Script versi baru di-deploy (lihat apps-script.gs).'
+      : (tot ? "" : "Daftar tamu masih kosong — tambahkan lewat halaman Kelola Daftar Tamu.");
 
     // ---- Tabel status per tamu ----
     const q = norm($("#search").value);
@@ -226,20 +254,23 @@
       if (filter === "hadir")   return w && isHadir(w.attend);
       if (filter === "tidak")   return w && isTidak(w.attend);
       if (filter === "belum")   return !w;
+      if (filter === "belumbuka") return openMode ? !dibukaMap.has(k) : true;
       if (filter === "checkin") return checkinSet.has(k);
       return true;
     });
     const tb = $("#tbl tbody");
     if (!guests.length) {
-      tb.innerHTML = '<tr><td colspan="5" class="muted">Belum ada tamu di daftar.</td></tr>';
+      tb.innerHTML = '<tr><td colspan="6" class="muted">Belum ada tamu di daftar.</td></tr>';
     } else if (!rows.length) {
-      tb.innerHTML = '<tr><td colspan="5" class="muted">Tidak ada tamu yang cocok dengan filter/pencarian.</td></tr>';
+      tb.innerHTML = '<tr><td colspan="6" class="muted">Tidak ada tamu yang cocok dengan filter/pencarian.</td></tr>';
     } else {
       tb.innerHTML = rows.map((g, i) => {
         const k = norm(g.name), w = rsvpMap[k];
+        const d = openMode ? dibukaMap.get(k) : null;
+        const buka = d ? ('<span class="ci-yes">✓' + (d.n > 1 ? " " + d.n + "×" : "") + '</span>') : '<span class="ci-no">—</span>';
         const paxTx = (w && isHadir(w.attend)) ? paxOf(w) : "—";
         const ci = checkinSet.has(k) ? '<span class="ci-yes">✓ Hadir</span>' : '<span class="ci-no">—</span>';
-        return `<tr><td>${i+1}</td><td class="name">${esc(g.name)}</td><td>${badge(w)}</td><td>${paxTx}</td><td>${ci}</td></tr>`;
+        return `<tr><td>${i+1}</td><td class="name">${esc(g.name)}</td><td>${buka}</td><td>${badge(w)}</td><td>${paxTx}</td><td>${ci}</td></tr>`;
       }).join("");
     }
 
@@ -276,12 +307,13 @@
   $("#search").addEventListener("input", render);
   $("#btn-refresh").addEventListener("click", loadAll);
   $("#btn-csv").addEventListener("click", () => {
-    let csv = "Nama,RSVP,Pax,CheckIn\n";
+    let csv = "Nama,Dibuka,RSVP,Pax,CheckIn\n";
     guests.forEach(g => {
       const k = norm(g.name), w = rsvpMap[k];
+      const bukaTx = openMode ? (dibukaMap.has(k) ? "Ya" : "Belum") : "";
       const st = w ? (isHadir(w.attend) ? "Hadir" : (isTidak(w.attend) ? "Tidak Hadir" : w.attend)) : "Belum RSVP";
       const paxTx = (w && isHadir(w.attend)) ? paxOf(w) : "";
-      csv += `"${String(g.name||'').replace(/"/g,'""')}","${st}","${paxTx}","${checkinSet.has(k) ? "Ya" : ""}"\n`;
+      csv += `"${String(g.name||'').replace(/"/g,'""')}","${bukaTx}","${st}","${paxTx}","${checkinSet.has(k) ? "Ya" : ""}"\n`;
     });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob([csv], { type:"text/csv;charset=utf-8;" }));

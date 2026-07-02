@@ -2,12 +2,14 @@
    Google Apps Script — Backend Undangan Digital
    - RSVP & ucapan tamu
    - Check-in QR saat acara
+   - Pelacak buka undangan + endpoint rekap (untuk dasbor.html)
    Tempel seluruh isi file ini ke editor Apps Script, lalu DEPLOY
    ULANG (New version). Lihat CARA-RSVP-GOOGLE-SHEETS.md
    ============================================================ */
 
 const RSVP_SHEET = 'RSVP';
 const CHECKIN_SHEET = 'CheckIn';
+const DIBUKA_SHEET = 'Dibuka';
 const SITE = 'https://hennyfarid.balanglompo.com/';  // alamat undangan
 
 /* ============================================================
@@ -188,7 +190,9 @@ function doPost(e) {
 }
 
 // ---------- GET ----------
-// ?type=checkin -> daftar check-in; selain itu -> daftar ucapan
+// ?type=checkin -> daftar check-in; ?type=tamu -> daftar tamu;
+// ?type=open -> catat undangan dibuka; ?type=rekap -> data dasbor;
+// selain itu -> daftar ucapan
 function doGet(e) {
   const type = e && e.parameter ? e.parameter.type : '';
   if (type === 'checkin') {
@@ -210,6 +214,16 @@ function doGet(e) {
     });
     return json({ list: list });
   }
+  // --- Catat "undangan dibuka" (ping dari index.html saat halaman dimuat) ---
+  // Sengaja lewat GET, bukan POST: backend lama membalas GET tak dikenal dengan
+  // bacaan biasa (tanpa efek samping), jadi index.html aman live lebih dulu.
+  if (type === 'open') {
+    const name = String(e.parameter.name || '').trim().slice(0, 100);
+    if (name) getDibukaSheet().appendRow([new Date(), name]);
+    return json({ ok: !!name });
+  }
+  // --- Rekap dasbor: semua data dalam satu respons (dipakai dasbor.html) ---
+  if (type === 'rekap') return json(buildRekap());
   const sheet = getRsvpSheet();
   const rows = sheet.getDataRange().getValues();
   rows.shift();
@@ -217,6 +231,44 @@ function doGet(e) {
     return { t: r[0], name: r[1], attend: r[2], msg: r[3], guests: r[4] };
   }).reverse();
   return json(list);
+}
+
+// Gabungan data untuk dasbor.html: daftar tamu (tanpa nomor WA — dasbor tak
+// membutuhkannya), RSVP, check-in, dan agregat "dibuka" per nama.
+function buildRekap() {
+  const out = { ok: true, tamu: [], rsvp: [], checkin: [], dibuka: [] };
+
+  const ds = getDaftarSheet();
+  if (ds && ds.getLastRow() >= 2) {
+    ds.getRange(2, 1, ds.getLastRow() - 1, 3).getValues().forEach(function (r) {
+      if (String(r[0]).trim() !== '') out.tamu.push({ name: r[0], pic: r[2] });
+    });
+  }
+
+  const rrows = getRsvpSheet().getDataRange().getValues();
+  rrows.shift();
+  out.rsvp = rrows.map(function (r) {
+    return { t: r[0], name: r[1], attend: r[2], msg: r[3], guests: r[4] };
+  }).reverse();
+
+  const crows = getCheckinSheet().getDataRange().getValues();
+  crows.shift();
+  out.checkin = crows.map(function (r) { return { t: r[0], name: r[1] }; }).reverse();
+
+  const orows = getDibukaSheet().getDataRange().getValues();
+  orows.shift();
+  const agg = {};
+  orows.forEach(function (r) {
+    const k = String(r[1] || '').trim().toLowerCase();
+    if (!k) return;
+    if (!agg[k]) { agg[k] = { name: r[1], n: 0, first: r[0], last: r[0] }; }
+    agg[k].n++;
+    if (r[0] < agg[k].first) agg[k].first = r[0];
+    if (r[0] > agg[k].last) agg[k].last = r[0];
+  });
+  out.dibuka = Object.keys(agg).map(function (k) { return agg[k]; });
+
+  return out;
 }
 
 // ---------- helpers ----------
@@ -240,6 +292,16 @@ function getCheckinSheet() {
   if (!sheet) {
     sheet = ss.insertSheet(CHECKIN_SHEET);
     sheet.appendRow(['Waktu Datang', 'Nama Tamu']);
+  }
+  return sheet;
+}
+
+function getDibukaSheet() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(DIBUKA_SHEET);
+  if (!sheet) {
+    sheet = ss.insertSheet(DIBUKA_SHEET);
+    sheet.appendRow(['Waktu', 'Nama Tamu']);
   }
   return sheet;
 }
