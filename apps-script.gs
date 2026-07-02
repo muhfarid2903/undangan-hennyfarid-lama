@@ -26,8 +26,8 @@ function setupDaftarTamu() {
   if (!sh) sh = ss.insertSheet('DaftarTamu');
   sh.clear();
 
-  sh.getRange('A1:F1')
-    .setValues([['Nama Tamu', 'No. WA (opsional)', 'PIC / Petugas', 'Catatan', 'Link Undangan', 'Kirim WhatsApp']])
+  sh.getRange('A1:G1')
+    .setValues([['Nama Tamu', 'No. WA (opsional)', 'PIC / Petugas', 'Catatan', 'Link Undangan', 'Kirim WhatsApp', 'ID Check-in']])
     .setFontWeight('bold').setBackground('#f3ece2');
 
   setDaftarFormulas(sh);
@@ -42,9 +42,12 @@ function setupDaftarTamu() {
 // Pasang rumus kolom E (link undangan) & F (link WA). Dipanggil saat setup dan
 // setiap kali menghapus baris, agar ARRAYFORMULA (jangkar di baris 2) selalu ada.
 function setDaftarFormulas(sh) {
-  // Kolom E: Link undangan personal (otomatis untuk setiap nama di kolom A)
+  // Kolom E: Link undangan personal (otomatis untuk setiap nama di kolom A).
+  // Bila kolom G (ID Check-in) terisi, link menyertakan &id= — dipakai QR
+  // check-in agar dua tamu bernama sama tidak bentrok. Jalankan isiIdTamu
+  // sekali untuk mengisi ID tamu lama.
   sh.getRange('E2').setFormula(
-    '=ARRAYFORMULA(IF(A2:A="","","' + SITE + '?to="&SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(A2:A,"&","%26"),",","%2C")," ","%20")))'
+    '=ARRAYFORMULA(IF(A2:A="","","' + SITE + '?to="&SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(A2:A,"&","%26"),",","%2C")," ","%20")&IF(G2:G="","","&id="&G2:G)))'
   );
 
   // Kolom F: Link kirim WhatsApp (nomor otomatis dinormalkan ke 62, pesan + link terenkode)
@@ -82,6 +85,60 @@ function setDaftarFormulas(sh) {
 }
 
 /* ============================================================
+   ID UNIK TAMU — untuk QR check-in anti bentrok nama sama.
+   Jalankan SEKALI dari editor: pilih "isiIdTamu" lalu Run.
+   Mengisi kolom G (ID Check-in) untuk semua tamu yang belum punya,
+   lalu memperbarui rumus Link agar menyertakan &id=. Tamu baru dari
+   kelola-tamu.html otomatis diberi ID. QR pada link lama (tanpa id)
+   tetap berfungsi dengan pencocokan nama seperti sebelumnya.
+   ============================================================ */
+function isiIdTamu() {
+  const sh = getDaftarSheet();
+  if (!sh) { SpreadsheetApp.getUi().alert('Tab DaftarTamu belum ada.'); return; }
+  sh.getRange('G1').setValue('ID Check-in').setFontWeight('bold').setBackground('#f3ece2');
+  const last = sh.getLastRow();
+  let made = 0;
+  if (last >= 2) {
+    const names = sh.getRange(2, 1, last - 1, 1).getValues();
+    const ids = sh.getRange(2, 7, last - 1, 1).getValues();
+    const seen = {};
+    ids.forEach(function (r) { const v = String(r[0]).trim(); if (v) seen[v] = true; });
+    for (let i = 0; i < names.length; i++) {
+      if (String(names[i][0]).trim() === '' || String(ids[i][0]).trim() !== '') continue;
+      const id = buatIdTamu(seen);
+      ids[i][0] = id; seen[id] = true; made++;
+    }
+    sh.getRange(2, 7, last - 1, 1).setValues(ids);
+  }
+  setDaftarFormulas(sh);
+  // header kolom ID di tab CheckIn (bila tab sudah ada)
+  const cs = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CHECKIN_SHEET);
+  if (cs && String(cs.getRange('C1').getValue()) === '') cs.getRange('C1').setValue('ID');
+  SpreadsheetApp.getUi().alert('Selesai: ' + made + ' tamu diberi ID baru. Kolom Link kini menyertakan &id=.');
+}
+
+// ID pendek acak: 6 karakter huruf kecil + angka (tanpa karakter yang mirip: l/1, o/0)
+function buatIdTamu(seen) {
+  const chars = 'abcdefghjkmnpqrstuvwxyz23456789';
+  while (true) {
+    let id = '';
+    for (let i = 0; i < 6; i++) id += chars.charAt(Math.floor(Math.random() * chars.length));
+    if (!seen[id]) return id;
+  }
+}
+
+// Cari nama tamu berdasarkan ID (kolom G DaftarTamu); '' bila tak ketemu
+function cariTamuById(id) {
+  const sh = getDaftarSheet();
+  if (!sh || sh.getLastRow() < 2) return '';
+  const rows = sh.getRange(2, 1, sh.getLastRow() - 1, 7).getValues();
+  for (let i = 0; i < rows.length; i++) {
+    if (String(rows[i][6]).trim() === id) return String(rows[i][0]).trim();
+  }
+  return '';
+}
+
+/* ============================================================
    RAPIKAN DAFTAR TAMU — jalankan SEKALI dari editor bila daftar
    ada "gap" (nama berpencar dengan banyak baris kosong).
    Menarik semua nama agar berurutan rapat dari baris 2, lalu
@@ -113,16 +170,23 @@ function doPost(e) {
     const data = JSON.parse(e.postData.contents);
 
     // --- Check-in dari halaman scanner ---
+    // QR baru berisi ID unik (kolom G DaftarTamu) -> duplikat dicek per ID,
+    // dua tamu bernama sama tidak bentrok. QR/link lama tanpa ID -> per nama.
     if (data.type === 'checkin') {
       const sheet = getCheckinSheet();
-      const name = String(data.name || '').trim().slice(0, 100);
-      if (!name) return json({ ok: false, error: 'nama kosong' });
+      const id = String(data.id || '').trim().slice(0, 20);
+      let name = String(data.name || '').trim().slice(0, 100);
+      if (id) {
+        const resmi = cariTamuById(id);
+        if (resmi) name = resmi;   // nama resmi dari DaftarTamu (bukan dari QR)
+      }
+      if (!id && !name) return json({ ok: false, error: 'QR tidak dikenal' });
 
-      // cek apakah sudah pernah check-in
-      const names = sheet.getRange(2, 2, Math.max(sheet.getLastRow() - 1, 1), 1)
-                         .getValues().map(function (r) { return String(r[0]).trim().toLowerCase(); });
-      const already = names.indexOf(name.toLowerCase()) !== -1;
-      if (!already) sheet.appendRow([new Date(), name]);
+      const rows = sheet.getRange(2, 2, Math.max(sheet.getLastRow() - 1, 1), 2).getValues(); // B: nama, C: id
+      const already = id
+        ? rows.some(function (r) { return String(r[1]).trim() === id; })
+        : rows.some(function (r) { return String(r[0]).trim().toLowerCase() === name.toLowerCase(); });
+      if (!already) sheet.appendRow([new Date(), name || ('ID ' + id), id]);
       return json({ ok: true, name: name, already: already });
     }
 
@@ -147,8 +211,18 @@ function doPost(e) {
       for (let i = 0; i < colA.length; i++) {
         if (String(colA[i][0]).trim() === '') { target = i + 2; break; }
       }
-      if (target) sheet.getRange(target, 1, 1, 4).setValues([rowData]);
-      else sheet.appendRow(rowData); // semua baris terpakai → tambah baris baru di bawah
+      // ID unik (kolom G) untuk QR check-in — dibuat otomatis untuk tamu baru
+      const gvals = sheet.getRange(2, 7, maxRow - 1, 1).getValues();
+      const seen = {};
+      gvals.forEach(function (r) { const v = String(r[0]).trim(); if (v) seen[v] = true; });
+      const gid = buatIdTamu(seen);
+      if (target) {
+        sheet.getRange(target, 1, 1, 4).setValues([rowData]);
+        sheet.getRange(target, 7).setValue(gid);
+      } else {
+        sheet.appendRow(rowData); // semua baris terpakai → tambah baris baru di bawah
+        sheet.getRange(sheet.getLastRow(), 7).setValue(gid);
+      }
       return json({ ok: true });
     }
 
@@ -199,18 +273,20 @@ function doGet(e) {
     const sheet = getCheckinSheet();
     const rows = sheet.getDataRange().getValues();
     rows.shift();
-    const list = rows.map(function (r) { return { t: r[0], name: r[1] }; }).reverse();
+    const list = rows.map(function (r) {
+      return { t: r[0], name: r[1], id: (r[2] == null ? '' : String(r[2]).trim()) };
+    }).reverse();
     return json({ count: list.length, list: list });
   }
   if (type === 'tamu') {
     const sheet = getDaftarSheet();
     if (!sheet || sheet.getLastRow() < 2) return json({ list: [] });
-    const rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, 6).getValues();
+    const rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, 7).getValues();
     const list = [];
     rows.forEach(function (r, i) {
       if (String(r[0]).trim() === '') return;
       // row = nomor baris asli di Sheet (dipakai kelola-tamu.html untuk hapus)
-      list.push({ row: i + 2, name: r[0], phone: r[1], pic: r[2], note: r[3], link: r[4], wa: r[5] });
+      list.push({ row: i + 2, name: r[0], phone: r[1], pic: r[2], note: r[3], link: r[4], wa: r[5], id: String(r[6] || '').trim() });
     });
     return json({ list: list });
   }
@@ -291,7 +367,7 @@ function getCheckinSheet() {
   let sheet = ss.getSheetByName(CHECKIN_SHEET);
   if (!sheet) {
     sheet = ss.insertSheet(CHECKIN_SHEET);
-    sheet.appendRow(['Waktu Datang', 'Nama Tamu']);
+    sheet.appendRow(['Waktu Datang', 'Nama Tamu', 'ID']);
   }
   return sheet;
 }

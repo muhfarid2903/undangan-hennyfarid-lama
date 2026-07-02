@@ -45,7 +45,7 @@ dilakukan di template/fork terpisah — jangan utak-atik file live.
 | # | Temuan | Status |
 |---|---|---|
 | 1 | **Bug `decodeURIComponent`**: nama tamu ber-`%` liar (mis. "Diskon 100%") melempar `URIError` di top-level → seluruh JS mati (countdown, RSVP, galeri). Ada di 2 titik: blok guest-name & blok QR check-in. | ✅ **Diperbaiki 2 Juli 2026** — helper `safeDecode` (try/catch), diverifikasi headless Chrome: nama ber-`%`, nama normal, dan link lama encode-ganda semuanya bekerja. |
-| 2 | **Duplikasi check-in berbasis nama**: dua tamu bernama sama ("Andi") → yang kedua ditolak "sudah check-in". Mitigasi hari-H: panitia catat manual. Solusi bisnis: QR berisi ID unik per tamu, bukan `CHECKIN:nama`. | ⬜ Belum |
+| 2 | **Duplikasi check-in berbasis nama**: dua tamu bernama sama ("Andi") → yang kedua ditolak "sudah check-in". Solusi: QR berisi ID unik per tamu. | ✅ **Diperbaiki 2 Juli 2026** — kolom `ID Check-in` (G) di DaftarTamu + fungsi `isiIdTamu`; link baru membawa `&id=`, QR & dedup per ID; link lama tetap didukung (per nama). |
 | 3 | **Bobot halaman ±11MB**: 21 foto galeri (100–430KB) dimuat penuh ke sel grid ±220px; musik 2,2MB. (Video justru sudah optimal: 160–970KB.) Solusi: thumbnail WebP ±400px untuk grid (~30–50KB/foto, hemat ±4MB), foto penuh hanya di lightbox; konversi JPEG→WebP (hemat 30–50%). Target muatan awal <3MB. | ⬜ Belum |
 
 ---

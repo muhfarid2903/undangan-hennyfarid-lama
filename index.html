@@ -2008,8 +2008,14 @@ mbtn.addEventListener("click", () => {
   const sec = $("#checkin");
   const name = guest ? safeDecode(guest).trim() : "";
   if (!name || typeof QRCode === "undefined") { sec.style.display = "none"; return; }
+  // Link baru menyertakan ?id= (kolom ID Check-in di Sheet) -> QR berbasis ID
+  // unik agar dua tamu bernama sama tidak bentrok. Link lama tanpa id tetap
+  // didukung: QR berisi nama (perilaku lama). Nama ikut disertakan pada QR
+  // ber-ID agar layar panitia bisa menampilkan nama tanpa menunggu server.
+  const gid = (params.get("id") || "").trim();
   new QRCode($("#qrcode"), {
-    text: "CHECKIN:" + name, width: 180, height: 180,
+    text: gid ? ("CHECKIN:ID:" + gid + "|" + name) : ("CHECKIN:" + name),
+    width: 180, height: 180,
     colorDark: "#4a4039", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M
   });
   $("#qr-guest").textContent = name;

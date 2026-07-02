@@ -29,6 +29,17 @@ masing-masing. Link undangan & tombol kirim WhatsApp muncul otomatis.
 - Kolom **E (Link Undangan)** & **F (Kirim WhatsApp)** terisi **otomatis**.
 - Klik link di kolom F untuk langsung membuka WhatsApp dengan pesan + link siap kirim.
 
+## 5. ID Check-in unik (anti bentrok nama sama)
+- Kolom **G (ID Check-in)** berisi kode unik per tamu; link undangan otomatis
+  menyertakan `&id=` sehingga QR check-in dicocokkan **per ID**, bukan per nama —
+  dua tamu bernama sama tidak lagi saling menolak saat scan.
+- Isi ID untuk tamu lama **sekali** dari editor Apps Script: pilih fungsi
+  **`isiIdTamu`** → **Run**. Tamu baru yang ditambahkan lewat **kelola-tamu.html**
+  otomatis diberi ID; tamu yang diketik manual langsung di Sheet belum punya ID
+  sampai `isiIdTamu` dijalankan lagi (tanpa ID pun QR-nya tetap jalan, memakai nama).
+- Link lama yang telanjur terkirim (tanpa `&id=`) tetap berfungsi: QR-nya
+  dicocokkan per nama, persis perilaku lama.
+
 Karena semua menulis ke sheet yang sama, kamu otomatis punya **rekap daftar
 tamu lengkap** secara real-time — tanpa perlu mengumpulkan file dari tiap pegawai.
 
